@@ -11,6 +11,8 @@ html, body {
 
 body {
   margin: 0;
+  width: 100%;
+  overflow-x: hidden; /* skyddsnät */
   background: #0b1d2a;
   color: #fff;
   font-family: system-ui, sans-serif;
@@ -59,7 +61,7 @@ h1 {
 
 #game-board {
   display: grid;
-  grid-template-columns: repeat(15, 16px);
+  grid-template-columns: repeat(15, 22px);
   touch-action: none;
 }
 
@@ -68,8 +70,8 @@ h1 {
 ================================ */
 
 .cell {
-  width: 16px;
-  height: 16px;
+  width: 22px;
+  height: 22px;
   background: #e0f2ff;
   border-radius: 1px;
 }
@@ -174,6 +176,7 @@ button {
 }
 
 .overlay button {
+  background-color: red;
   margin-top: 0.2rem;
   padding: 0.2rem 1rem;
   font-size: 0.7rem;
@@ -212,6 +215,3 @@ button {
   }
 }
 
-* {
-  outline: 1px solid red;
-}
