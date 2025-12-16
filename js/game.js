@@ -29,8 +29,11 @@ export class Game {
         x: Math.floor(Math.random() * this.size),
         y: Math.floor(Math.random() * this.size),
       };
-    } while (this.snake.body.some(seg => seg.x === food.x && seg.y === food.y));
-
+    } while (
+      this.snake.body.some(
+        seg => seg.x === food.x && seg.y === food.y
+      )
+    );
     return food;
   }
 
@@ -39,6 +42,7 @@ export class Game {
 
     this.snake.move();
     const head = this.snake.body[0];
+    if (!head) return;
 
     // Väggkollision
     if (
@@ -57,7 +61,7 @@ export class Game {
       return;
     }
 
-    // Paket taget 🎁
+    // Paket taget
     if (head.x === this.food.x && head.y === this.food.y) {
       this.snake.grow();
       this.food = this.spawnFood();

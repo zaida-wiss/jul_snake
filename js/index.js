@@ -2,11 +2,14 @@ import { Game } from "./game.js";
 
 const board = document.getElementById("game-board");
 const size = 15;
-let game = new Game(size);
+
+let game = null;
+let loopId = null;
 
 const overlay = document.getElementById("game-over");
 const finalScoreEl = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart-btn");
+const startBtn = document.getElementById("start-btn");
 
 // ===== LEVEL SETTINGS =====
 const LEVEL_SETTINGS = {
@@ -65,60 +68,81 @@ document.querySelectorAll(".controls button").forEach(btn => {
   });
 });
 
-// ===== GAME LOOP =====
-let currentTimeoutId = null;
-
-
-function gameLoop() {
-  if (!game.running) return;
-
-  game.update();
-  draw();
-
-
-  // 🔴 LIVE HUD
-  document.getElementById("score").textContent = game.score;
-  document.getElementById("packages").textContent = game.packages;
-  document.getElementById("time").textContent = game.getElapsedTime();
-
-  if (!game.running) {
-    setTimeout(showFinalResult, 300);
-    return;
-  }
-
-  const speed = LEVEL_SETTINGS[game.level].speed;
-  currentTimeoutId = setTimeout(gameLoop, speed);
-}
-
 
 // ===== LEVEL SELECT =====
 document.querySelectorAll(".level-select button").forEach(btn => {
   btn.addEventListener("click", () => {
-    game.level = Number(btn.dataset.level);
-    updateLevelLabel();
+    const level = Number(btn.dataset.level);
 
     document.querySelectorAll(".level-select button")
       .forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    if (currentTimeoutId) {
-      clearTimeout(currentTimeoutId);
-      gameLoop();
-    }
+    startGame(level);
   });
 });
 
 // ===== RESTART =====
 restartBtn.addEventListener("click", () => {
-  overlay.classList.add("hidden");
-
-  game = new Game(size, game.level); // startTime & counters reset
-  updateLevelLabel();
-  draw();
-  gameLoop();
+  startGame(game.level);
 });
 
 // ===== START =====
-updateLevelLabel();
-draw();
-gameLoop();
+startBtn.addEventListener("click", () => {
+  startGame(1);
+});
+
+
+document.querySelectorAll(".level-select button").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const level = Number(btn.dataset.level);
+
+    document.querySelectorAll(".level-select button")
+      .forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+
+    startGame(level); // ⭐ START
+  });
+});
+
+function hideGameOver() {
+  overlay.classList.add("hidden");
+}
+
+function showFinalResult() {
+  document.getElementById("final-score").textContent = game.score;
+  document.getElementById("final-packages").textContent = game.packages;
+  document.getElementById("final-time").textContent = game.getElapsedTime();
+
+  overlay.classList.remove("hidden");
+}
+
+function startGame(level = 1) {
+  if (loopId) clearTimeout(loopId);
+
+  game = new Game(size, level);
+
+  hideGameOver();
+  updateLevelLabel();
+
+  draw();
+
+  function loop() {
+    if (!game.running) {
+      showFinalResult();
+      return;
+    }
+
+    game.update();
+    draw();
+
+    // ⭐ 🎁 ⏱️ HUD
+    document.getElementById("score").textContent = game.score;
+    document.getElementById("packages").textContent = game.packages;
+    document.getElementById("time").textContent = game.getElapsedTime();
+
+    loopId = setTimeout(loop, LEVEL_SETTINGS[game.level].speed);
+  }
+
+  loop();
+}

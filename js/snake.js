@@ -1,11 +1,13 @@
 // js/jul_snake/snake.js
 
 export class Snake {
-  constructor(startX, startY) {
+  constructor(size) {
+    const center = Math.floor(size / 2);
+
     this.body = [
-      { x: startX, y: startY }, // 🎅 tomte (huvud)
-      { x: startX - 1, y: startY },
-      { x: startX - 2, y: startY },
+      { x: center, y: center },
+      { x: center - 1, y: center },
+      { x: center - 2, y: center },
     ];
 
     this.direction = "RIGHT";
@@ -28,7 +30,6 @@ export class Snake {
   move() {
     this.direction = this.nextDirection;
     const head = this.body[0];
-
     const newHead = { ...head };
 
     if (this.direction === "UP") newHead.y--;
@@ -47,6 +48,8 @@ export class Snake {
 
   hitsItself() {
     const [head, ...rest] = this.body;
-    return rest.some(seg => seg.x === head.x && seg.y === head.y);
+    return rest.some(
+      seg => seg.x === head.x && seg.y === head.y
+    );
   }
 }
