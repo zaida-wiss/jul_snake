@@ -63,14 +63,14 @@ h1 {
 
 #game-board {
   display: grid;
+  border: red 2px solid;
   width: 100%;
   grid-template-columns: repeat(15, 1fr); /* Automatiskt fördelad bredd */
   background-color: #ffffff;
 }
 
-
 /* ===============================
-   CELLS
+CELLS
 ================================ */
 
 .cell {
@@ -81,7 +81,7 @@ h1 {
 }
 
 /* ===============================
-   SNAKE / FOOD
+SNAKE / FOOD
 ================================ */
 
 .snake-head,
@@ -105,7 +105,7 @@ h1 {
 }
 
 /* ===============================
-   UI PANEL
+UI PANEL
 ================================ */
 
 .ui-panel {
@@ -124,7 +124,7 @@ h1 {
 }
 
 /* ===============================
-   CONTROLS (MOBILE)
+CONTROLS (MOBILE)
 ================================ */
 
 .controls {
@@ -137,6 +137,8 @@ h1 {
 
 button {
   max-width: 100%;
+  height: auto;
+  padding: 5px;
   overflow: hidden;
   font-size: 2rem;
   border-radius: 6px;
@@ -152,7 +154,11 @@ button {
 .controls button:active {
   background: #355f7a;
 }
-
+#start-btn {
+  height: 30px;
+  font-size: 16px;;
+  background-color: red;
+}
 /* ===============================
    GAME OVER OVERLAY
 ================================ */
