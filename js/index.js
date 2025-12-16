@@ -32,6 +32,7 @@ for (let y = 0; y < size; y++) {
 function updateLevelLabel() {
   document.querySelector(".level-select span").textContent =
     `Level: ${game.level} (speed ${LEVEL_SETTINGS[game.level].speed} ms)`;
+  document.getElementById("packages").textContent = game.packages;
 }
 
 // ===== DRAW =====
@@ -67,23 +68,28 @@ document.querySelectorAll(".controls button").forEach(btn => {
 // ===== GAME LOOP =====
 let currentTimeoutId = null;
 
+
 function gameLoop() {
   if (!game.running) return;
 
   game.update();
   draw();
 
+
+  // 🔴 LIVE HUD
+  document.getElementById("score").textContent = game.score;
+  document.getElementById("packages").textContent = game.packages;
+  document.getElementById("time").textContent = game.getElapsedTime();
+
   if (!game.running) {
-    setTimeout(() => {
-      finalScoreEl.textContent = `Poäng: ${game.score}`;
-      overlay.classList.remove("hidden");
-    }, 300);
+    setTimeout(showFinalResult, 300);
     return;
   }
 
   const speed = LEVEL_SETTINGS[game.level].speed;
   currentTimeoutId = setTimeout(gameLoop, speed);
 }
+
 
 // ===== LEVEL SELECT =====
 document.querySelectorAll(".level-select button").forEach(btn => {
@@ -105,7 +111,8 @@ document.querySelectorAll(".level-select button").forEach(btn => {
 // ===== RESTART =====
 restartBtn.addEventListener("click", () => {
   overlay.classList.add("hidden");
-  game = new Game(size, game.level);
+
+  game = new Game(size, game.level); // startTime & counters reset
   updateLevelLabel();
   draw();
   gameLoop();

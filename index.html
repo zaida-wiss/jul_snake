@@ -16,10 +16,12 @@
 
 
 <section class="ui-panel">
+<div class="hud">
+  ⭐ <span id="score">0</span>
+  🎁 <span id="packages">0</span>
+  ⏰ <span id="time">0:00</span>
+</div>
 
-  <div class="hud">
-    🎁 <span id="score">0</span> · ⏱️ <span id="time">0:00</span>
-  </div>
     <div class="level-select">
       <span>Level:</span><br>
       <button data-level="1" class="active">1</button>
@@ -48,8 +50,9 @@
   <div id="game-over" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="game-over-title">
     <div class="overlay-content">
       <h2 id="game-over-title">🎅 Game Over</h2>
-      <p>Poäng: <span id="final-score"></span></p>
-      <p>Tid: <span id="final-time"></span></p>
+      <p>⭐ <span id="final-score"></span></p>
+      <p>🎁 <span id="final-packages"></span></p>
+      <p>⏰ <span id="final-time"></span></p>
       <button id="restart-btn">Spela igen</button>
     </div>
   </div>
