@@ -58,3 +58,13 @@ gameOver() {
   this.running = false;
 }
 }
+function showGameOver(score, time) {
+  document.getElementById("final-score").textContent = score;
+  document.getElementById("final-time").textContent = time;
+
+  const overlay = document.getElementById("game-over");
+  overlay.classList.remove("hidden");
+}
+function hideGameOver() {
+  document.getElementById("game-over").classList.add("hidden");
+}

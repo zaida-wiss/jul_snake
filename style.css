@@ -1,48 +1,68 @@
-/* ===== MOBILE FIRST ===== */
+/* ===============================
+   GLOBAL RESET / BAS
+================================ */
 
 *, *::before, *::after {
   box-sizing: border-box;
 }
+
 body {
-  margin: 0 auto;
+  margin: 0;
   min-height: 100vh;
   background: #0b1d2a;
   color: #fff;
   font-family: system-ui, sans-serif;
 }
+
+/* ===============================
+   APP-CONTAINER
+================================ */
+
 .page {
+  position: relative; /* ← KRITISKT */
   max-width: 360px;
   margin: 0 auto;
 
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
+  display: grid;
+  grid-template-rows:
+    auto    /* header */
+    auto    /* game */
+    auto    /* hud */
+    auto;   /* controls */
 
-  height: 100vh;
+  justify-items: center;
 }
+
+/* ===============================
+   HEADER
+================================ */
 
 h1 {
   font-size: 1.2rem;
   margin: 0.75rem 0;
 }
 
-/* Spelplan */
-#game-board {
-  display: grid;
-  grid-template-columns: repeat(15, 16px);
-  gap: 0px;
-  touch-action: none;
-}
+/* ===============================
+   GAME AREA
+================================ */
+
 .game-area {
-  flex: 1;                  /* ← detta är nyckeln */
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 200px;;
 }
 
-/* Cellstorlek – MOBILE */
+#game-board {
+  display: grid;
+  grid-template-columns: repeat(15, 16px);
+  touch-action: none;
+}
+
+/* ===============================
+   CELLS
+================================ */
+
 .cell {
   width: 16px;
   height: 16px;
@@ -50,45 +70,63 @@ h1 {
   border-radius: 1px;
 }
 
-/* Snake */
-.snake {
-  background: #c0392b;
+/* ===============================
+   SNAKE / FOOD
+================================ */
+
+.snake-head,
+.snake-body,
+.food {
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
-.food {
-  background: gold;
-  background-image: url("./bilder/paket.webp"); /* tomte */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-}
 .snake-head {
-  background-color: green;
-  background-image: url("./bilder/tomte_huvud.webp"); /* tomte */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  background-image: url("./bilder/tomte_huvud.webp");
 }
 
 .snake-body {
-  background-color: green;
-  background-image: url("./bilder/paket.webp"); /* paket */
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-
+  background-image: url("./bilder/paket.webp");
 }
 
-/* ===== TOUCH CONTROLS ===== */
+.food {
+  background-image: url("./bilder/paket.webp");
+}
+
+/* ===============================
+   UI PANEL
+================================ */
+
+.ui-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.hud {
+  font-size: 0.8rem;
+}
+
+.level-select {
+  margin-bottom: 0.25rem;
+}
+
+/* ===============================
+   CONTROLS (MOBILE)
+================================ */
+
 .controls {
-  margin-top: 8rem;
   display: grid;
   grid-template-columns: repeat(3, 40px);
   grid-template-rows: repeat(3, 40px);
   gap: 8px;
 }
 
-.controls button {
+button {
+  max-width: 100%;
+  overflow: hidden;
   font-size: 1rem;
   border-radius: 6px;
   border: none;
@@ -96,13 +134,65 @@ h1 {
   color: #fff;
 }
 
+.controls button {
+  line-height: 1;
+}
+
 .controls button:active {
   background: #355f7a;
 }
 
+/* ===============================
+   GAME OVER OVERLAY
+================================ */
+
+.overlay {
+  position: absolute; /* ← viktigt */
+  inset: 0;
+
+  background: rgba(0, 0, 0, 0.75);
+  display: grid;
+  place-items: center;
+
+  max-width: 360px;
+  margin: 0 auto;
+}
+
+.overlay-content {
+  width: min(90vw, 320px);
+  padding: 1rem;
+  background: #0b1d2a;
+  border-radius: 12px;
+  text-align: center;
+}
+
+.overlay button {
+  margin-top: 0.2rem;
+  padding: 0.2rem 1rem;
+  font-size: 0.7rem;
+  border-radius: 15px;
+}
+
+.hidden {
+  display: none;
+}
+
+/* När Game Over visas ska UI-panelen bort */
+.game-over-active .ui-panel {
+  display: none;
+}
+
+/* ===============================
+   DESKTOP
+================================ */
+
 @media (min-width: 768px) {
   h1 {
     font-size: 1.6rem;
+  }
+
+  #game-board {
+    grid-template-columns: repeat(15, 24px);
   }
 
   .cell {
@@ -111,63 +201,6 @@ h1 {
   }
 
   .controls {
-    display: none; /* desktop = tangentbord */
-  }
-}
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.75);
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-
-  z-index: 999;
-}
-
-.overlay-content {
-  width: min(90vw, 320px);
-  padding: 0.75rem;
-
-  background: #0b1d2a;
-  border-radius: 12px;
-  text-align: center;
-
-  margin-bottom: 1rem;
-}
-
-
-.overlay button {
-  margin-top: 0.2rem;
-  padding: 0.2rem 1rem;
-  font-size: 0.7rem;
-}
-
-.hidden {
-  display: none;
-}
-
-
-
-.level-select {
-  margin-bottom: 0.25rem;
-}
-
-.hud {
-  margin-bottom: 0.25rem;
-  font-size: 0.8rem;
-}
-
-/* ===== DESKTOP ===== */
-@media (min-width: 768px) {
-  #game-board {
-    grid-template-columns: repeat(15, 24px);
-  }
-
-  .cell {
-    width: 24px;
-    height: 24px;
+    display: none;
   }
 }
