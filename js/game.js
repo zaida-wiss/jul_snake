@@ -40,37 +40,35 @@ export class Game {
   update() {
     if (!this.running) return;
 
-    this.snake.move();
-    const head = this.snake.body[0];
-    if (!head) return;
+    const nextHead = this.snake.getNextHead();
 
-    // Väggkollision
+    // 🧱 Väggkollision – stoppa INNAN rörelse
     if (
-      head.x < 0 ||
-      head.y < 0 ||
-      head.x >= this.size ||
-      head.y >= this.size
+      nextHead.x < 0 ||
+      nextHead.y < 0 ||
+      nextHead.x >= this.size ||
+      nextHead.y >= this.size
     ) {
-      this.gameOver();
+      this.running = false;
       return;
     }
 
-    // Självkollision
+    this.snake.move();
+
+    // 💥 Självkollision
     if (this.snake.hitsItself()) {
-      this.gameOver();
+      this.running = false;
       return;
     }
 
-    // Paket taget
+    // 🎁 Paket
+    const head = this.snake.body[0];
     if (head.x === this.food.x && head.y === this.food.y) {
       this.snake.grow();
       this.food = this.spawnFood();
-      this.packages += 1;
+      this.packages++;
       this.score += 10 * this.level;
     }
   }
-
-  gameOver() {
-    this.running = false;
-  }
 }
+

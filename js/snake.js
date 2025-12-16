@@ -52,4 +52,15 @@ export class Snake {
       seg => seg.x === head.x && seg.y === head.y
     );
   }
+  getNextHead() {
+    const head = this.body[0];
+    const next = { ...head };
+
+    if (this.nextDirection === "UP") next.y--;
+    if (this.nextDirection === "DOWN") next.y++;
+    if (this.nextDirection === "LEFT") next.x--;
+    if (this.nextDirection === "RIGHT") next.x++;
+
+    return next;
+  }
 }
