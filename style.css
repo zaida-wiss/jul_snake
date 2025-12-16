@@ -24,7 +24,7 @@ body {
 
 .page {
   position: relative;      /* KRITISKT */
-  max-width: 360px;
+  margin: 0;
   height: 100%;
   margin: 0 auto;
 
@@ -168,11 +168,12 @@ button {
   place-items: center;
 
   background: rgba(0,0,0,0.6);
+  z-index: 10;
 }
 
 .overlay-content {
   width: 100%;
-  max-width: 300px;
+
   padding: 1rem;
   background: #051d2eaa;
   height: 240px;
