@@ -1,0 +1,131 @@
+/* ===== MOBILE FIRST ===== */
+
+body {
+  margin: 0 auto;
+  padding: 0;
+  max-width: 360px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: #0b1d2a;
+  color: #fff;
+  font-family: system-ui, sans-serif;
+}
+
+h1 {
+  font-size: 1.2rem;
+  margin: 0.75rem 0;
+}
+
+/* Spelplan */
+#game-board {
+  display: grid;
+  width: 100%;
+  grid-template-columns: repeat(15, 18px);
+  gap: 1px;
+  touch-action: none;
+}
+
+/* Cellstorlek – MOBILE */
+.cell {
+  width: 18px;
+  height: 18px;
+  background: #e0f2ff;
+  border-radius: 2px;
+}
+
+/* Snake */
+.snake {
+  background: #c0392b;
+}
+
+.food {
+  background: gold;
+}
+.snake-head {
+  background: #e74c3c; /* tomte */
+}
+
+.snake-body {
+  background: #c0392b; /* paket */
+}
+
+/* ===== TOUCH CONTROLS ===== */
+.controls {
+  margin-top: 1rem;
+  display: grid;
+  grid-template-columns: repeat(3, 48px);
+  grid-template-rows: repeat(3, 48px);
+  gap: 8px;
+}
+
+.controls button {
+  font-size: 1.2rem;
+  border-radius: 6px;
+  border: none;
+  background: #1f3b52;
+  color: #fff;
+}
+
+.controls button:active {
+  background: #355f7a;
+}
+
+@media (min-width: 768px) {
+  h1 {
+    font-size: 1.6rem;
+  }
+
+  .cell {
+    width: 24px;
+    height: 24px;
+  }
+
+  .controls {
+    display: none; /* desktop = tangentbord */
+  }
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+
+.overlay-content {
+  background: #0b1d2a;
+  padding: 1.5rem;
+  border-radius: 12px;
+  text-align: center;
+  width: 90%;
+  max-width: 320px;
+}
+
+.overlay button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+}
+
+.hidden {
+  display: none;
+}
+
+
+/* ===== DESKTOP ===== */
+@media (min-width: 768px) {
+  #game-board {
+    grid-template-columns: repeat(15, 24px);
+  }
+
+  .cell {
+    width: 24px;
+    height: 24px;
+  }
+}

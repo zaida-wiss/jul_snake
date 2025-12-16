@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <script type="module" src="./js/index.js" defer></script>
+  <title>jul_snake</title>
+</head>
+
+<body>
+  <h1>🎄 Jul-Snake</h1>
+  <div id="game-board"></div>
+  <div class="level-select">
+  <span>Level:</span>
+  <button data-level="1" class="active">1</button>
+  <button data-level="2">2</button>
+  <button data-level="3">3</button>
+  <button data-level="4">4</button>
+  <button data-level="5">5</button>
+</div>
+
+  <div class="controls">
+  <div></div>
+  <button data-dir="UP">⬆️</button>
+  <div></div>
+
+  <button data-dir="LEFT">⬅️</button>
+  <div></div>
+  <button data-dir="RIGHT">➡️</button>
+
+  <div></div>
+    <button data-dir="DOWN">⬇️</button>
+  <div></div>
+
+  <div id="game-over" class="overlay hidden" role="dialog" aria-live="assertive">
+    <div class="overlay-content">
+        <h2>🎅 Game Over</h2>
+        <p id="final-score"></p>
+        <button id="restart-btn">Spela igen</button>
+    </div>
+  </div>
+
+</div>
+</body>
+
+
+</html>
