@@ -6,8 +6,8 @@ const size = 15;
 let game = null;
 let loopId = null;
 
+// ===== OVERLAY =====
 const overlay = document.getElementById("game-over");
-const finalScoreEl = document.getElementById("final-score");
 const restartBtn = document.getElementById("restart-btn");
 const startBtn = document.getElementById("start-btn");
 
@@ -35,12 +35,13 @@ for (let y = 0; y < size; y++) {
 function updateLevelLabel() {
   document.querySelector(".level-select span").textContent =
     `Level: ${game.level} (speed ${LEVEL_SETTINGS[game.level].speed} ms)`;
+
   document.getElementById("packages").textContent = game.packages;
 }
 
 // ===== DRAW =====
 function draw() {
-  cells.forEach(cell => cell.className = "cell");
+  cells.forEach(cell => (cell.className = "cell"));
 
   const head = game.snake.body[0];
   cells[head.y * size + head.x]?.classList.add("snake-head");
@@ -56,6 +57,8 @@ function draw() {
 
 // ===== INPUT =====
 window.addEventListener("keydown", e => {
+  if (!game || !game.running) return;
+
   if (e.key === "ArrowUp") game.snake.setDirection("UP");
   if (e.key === "ArrowDown") game.snake.setDirection("DOWN");
   if (e.key === "ArrowLeft") game.snake.setDirection("LEFT");
@@ -64,26 +67,28 @@ window.addEventListener("keydown", e => {
 
 document.querySelectorAll(".controls button").forEach(btn => {
   btn.addEventListener("click", () => {
+    if (!game || !game.running) return;
     game.snake.setDirection(btn.dataset.dir);
   });
 });
 
-
-// ===== LEVEL SELECT =====
+// ===== LEVEL SELECT (BYT LEVEL UTAN RESET) =====
 document.querySelectorAll(".level-select button").forEach(btn => {
   btn.addEventListener("click", () => {
     const level = Number(btn.dataset.level);
 
-    document.querySelectorAll(".level-select button")
+    document
+      .querySelectorAll(".level-select button")
       .forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
 
-    startGame(level);
+    changeLevel(level);
   });
 });
 
 // ===== RESTART =====
 restartBtn.addEventListener("click", () => {
+  if (!game) return;
   startGame(game.level);
 });
 
@@ -92,19 +97,7 @@ startBtn.addEventListener("click", () => {
   startGame(1);
 });
 
-
-document.querySelectorAll(".level-select button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const level = Number(btn.dataset.level);
-
-    document.querySelectorAll(".level-select button")
-      .forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    startGame(level); // ⭐ START
-  });
-});
-
+// ===== GAME FLOW =====
 function hideGameOver() {
   overlay.classList.add("hidden");
 }
@@ -117,6 +110,24 @@ function showFinalResult() {
   overlay.classList.remove("hidden");
 }
 
+// ===== MAIN LOOP =====
+function loop() {
+  if (!game.running) {
+    showFinalResult();
+    return;
+  }
+
+  game.update();
+  draw();
+
+  document.getElementById("score").textContent = game.score;
+  document.getElementById("packages").textContent = game.packages;
+  document.getElementById("time").textContent = game.getElapsedTime();
+
+  loopId = setTimeout(loop, LEVEL_SETTINGS[game.level].speed);
+}
+
+// ===== START NEW GAME =====
 function startGame(level = 1) {
   if (loopId) clearTimeout(loopId);
 
@@ -124,25 +135,18 @@ function startGame(level = 1) {
 
   hideGameOver();
   updateLevelLabel();
-
   draw();
 
-  function loop() {
-    if (!game.running) {
-      showFinalResult();
-      return;
-    }
+  loop();
+}
 
-    game.update();
-    draw();
+// ===== CHANGE LEVEL (NO RESET) =====
+function changeLevel(level) {
+  if (!game || !game.running) return;
 
-    // ⭐ 🎁 ⏱️ HUD
-    document.getElementById("score").textContent = game.score;
-    document.getElementById("packages").textContent = game.packages;
-    document.getElementById("time").textContent = game.getElapsedTime();
+  game.level = level;
+  updateLevelLabel();
 
-    loopId = setTimeout(loop, LEVEL_SETTINGS[game.level].speed);
-  }
-
+  if (loopId) clearTimeout(loopId);
   loop();
 }
