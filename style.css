@@ -52,18 +52,20 @@ h1 {
    GAME AREA
 ================================ */
 
-.game-area {
+/* .game-area {
   flex: 1;
   display: flex;
   align-items: center;
+  background-color: green;
   justify-content: center;
-}
+} */
 
 #game-board {
   display: grid;
+  margin:15px;
   grid-template-columns: repeat(15, 22px);
   touch-action: none;
-  background-color: #fff;
+  background-color: #ffffff;
 }
 
 /* ===============================
@@ -73,7 +75,7 @@ h1 {
 .cell {
   width: 22px;
   height: 22px;
-  background: #e0f2ff;
+  background: #ffffff;
   border-radius: 1px;
 }
 
@@ -109,7 +111,7 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.5rem;
 }
 
 .hud {
@@ -126,15 +128,16 @@ h1 {
 
 .controls {
   display: grid;
-  grid-template-columns: repeat(3, 40px);
-  grid-template-rows: repeat(3, 40px);
+  grid-template-columns: repeat(3, 100px);
+  grid-template-rows: repeat(3, 50px);
   gap: 8px;
+  margin-top: 20px;
 }
 
 button {
   max-width: 100%;
   overflow: hidden;
-  font-size: 1rem;
+  font-size: 2rem;
   border-radius: 6px;
   border: none;
   background: #1f3b52;
@@ -180,7 +183,7 @@ button {
   background-color: red;
   margin-top: 0.2rem;
   padding: 0.2rem 1rem;
-  font-size: 0.7rem;
+  font-size: 1.4rem;
   border-radius: 15px;
 }
 
