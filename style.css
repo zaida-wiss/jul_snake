@@ -57,8 +57,13 @@ h1 {
 
 .food {
   background: gold;
+  background-image: url("./bilder/paket.webp"); /* tomte */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 .snake-head {
+  background-color: green;
   background-image: url("./bilder/tomte_huvud.webp"); /* tomte */
   background-size: cover;
   background-position: center;
@@ -66,7 +71,12 @@ h1 {
 }
 
 .snake-body {
-  background: #c0392b; /* paket */
+  background-color: green;
+  background-image: url("./bilder/paket.webp"); /* paket */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
 }
 
 /* ===== TOUCH CONTROLS ===== */
