@@ -1,17 +1,25 @@
 /* ===== MOBILE FIRST ===== */
 
+*, *::before, *::after {
+  box-sizing: border-box;
+}
 body {
   margin: 0 auto;
-  padding: 0;
-  max-width: 360px;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: flex-start;
   background: #0b1d2a;
   color: #fff;
   font-family: system-ui, sans-serif;
+}
+.page {
+  max-width: 360px;
+  margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+
+  height: 100vh;
 }
 
 h1 {
@@ -22,18 +30,24 @@ h1 {
 /* Spelplan */
 #game-board {
   display: grid;
-  width: 100%;
-  grid-template-columns: repeat(15, 18px);
-  gap: 1px;
+  grid-template-columns: repeat(15, 16px);
+  gap: 0px;
   touch-action: none;
+}
+.game-area {
+  flex: 1;                  /* ← detta är nyckeln */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;;
 }
 
 /* Cellstorlek – MOBILE */
 .cell {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
   background: #e0f2ff;
-  border-radius: 2px;
+  border-radius: 1px;
 }
 
 /* Snake */
@@ -45,7 +59,10 @@ h1 {
   background: gold;
 }
 .snake-head {
-  background: #e74c3c; /* tomte */
+  background-image: url("./bilder/tomte_huvud.webp"); /* tomte */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .snake-body {
@@ -54,15 +71,15 @@ h1 {
 
 /* ===== TOUCH CONTROLS ===== */
 .controls {
-  margin-top: 1rem;
+  margin-top: 8rem;
   display: grid;
-  grid-template-columns: repeat(3, 48px);
-  grid-template-rows: repeat(3, 48px);
+  grid-template-columns: repeat(3, 40px);
+  grid-template-rows: repeat(3, 40px);
   gap: 8px;
 }
 
 .controls button {
-  font-size: 1.2rem;
+  font-size: 1rem;
   border-radius: 6px;
   border: none;
   background: #1f3b52;
@@ -92,31 +109,46 @@ h1 {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.75);
+
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
+
   z-index: 999;
 }
 
 .overlay-content {
+  width: min(90vw, 320px);
+  padding: 0.75rem;
+
   background: #0b1d2a;
-  padding: 1.5rem;
   border-radius: 12px;
   text-align: center;
-  width: 90%;
-  max-width: 320px;
+
+  margin-bottom: 1rem;
 }
 
+
 .overlay button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  font-size: 1rem;
+  margin-top: 0.2rem;
+  padding: 0.2rem 1rem;
+  font-size: 0.7rem;
 }
 
 .hidden {
   display: none;
 }
 
+
+
+.level-select {
+  margin-bottom: 0.25rem;
+}
+
+.hud {
+  margin-bottom: 0.25rem;
+  font-size: 0.8rem;
+}
 
 /* ===== DESKTOP ===== */
 @media (min-width: 768px) {
