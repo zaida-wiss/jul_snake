@@ -25,36 +25,49 @@ export class Game {
   }
 
   update() {
-    if (!this.running) return;
+  if (!this.running) return;
 
-    this.snake.move();
-    const head = this.snake.body[0];
+  // 🔮 Beräkna nästa huvudposition (utan att flytta)
+  const nextHead = this.snake.getNextHead();
 
-    // Väggkollision
-    if (
-      head.x < 0 ||
-      head.y < 0 ||
-      head.x >= this.size ||
-      head.y >= this.size
-    ) {
-      console.error("[Game] WALL COLLISION");
-      this.running = false;
-      return;
-    }
-
-    // Kroppskollision
-    if (this.snake.isSelfCollision()) {
-      console.error("[Game] BODY COLLISION");
-      this.running = false;
-      return;
-    }
-
-    if (this.mode === "classic") {
-      this.checkFood();
-    } else {
-      this.checkHouse();
-    }
+  // 🚧 Väggkollision (FÖRE move)
+  if (
+    nextHead.x < 0 ||
+    nextHead.y < 0 ||
+    nextHead.x >= this.size ||
+    nextHead.y >= this.size
+  ) {
+    console.error("[Game] WALL COLLISION at", nextHead);
+    this.running = false;
+    return;
   }
+
+  // 🚆 Kroppskollision (FÖRE move)
+  // OBS: tillåter att gå in i sista segmentet om det flyttas bort
+  const bodyWithoutTail =
+    this.snake.body.length > 1
+      ? this.snake.body.slice(0, -1)
+      : this.snake.body;
+
+  if (bodyWithoutTail.some(seg => seg.x === nextHead.x && seg.y === nextHead.y)) {
+    console.error("[Game] BODY COLLISION at", nextHead);
+    this.running = false;
+    return;
+  }
+
+  // ✅ Nu är det säkert att flytta
+  this.snake.move();
+
+  // 🍎 Classic mode
+  if (this.mode === "classic") {
+    this.checkFood();
+  }
+
+  // 🏠 Reverse mode
+  if (this.mode === "reverse") {
+    this.checkHouse();
+  }
+}
 
   /* ---------- CLASSIC ---------- */
 

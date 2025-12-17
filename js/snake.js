@@ -29,27 +29,27 @@ export class Snake {
     }
   }
 
-  move() {
-    this.direction = this.nextDirection;
-    const head = this.body[0];
+getNextHead() {
+  const head = this.body[0];
+  const moves = {
+    UP: { x: 0, y: -1 },
+    DOWN: { x: 0, y: 1 },
+    LEFT: { x: -1, y: 0 },
+    RIGHT: { x: 1, y: 0 },
+  };
 
-    const moves = {
-      UP: { x: 0, y: -1 },
-      DOWN: { x: 0, y: 1 },
-      LEFT: { x: -1, y: 0 },
-      RIGHT: { x: 1, y: 0 },
-    };
+  return {
+    x: head.x + moves[this.nextDirection].x,
+    y: head.y + moves[this.nextDirection].y,
+  };
+}
 
-    const next = {
-      x: head.x + moves[this.direction].x,
-      y: head.y + moves[this.direction].y,
-    };
-
-    this.body.unshift(next);
-    this.body.pop();
-
-    console.log("[Snake] moved. New head:", next);
-  }
+move() {
+  this.direction = this.nextDirection;
+  const next = this.getNextHead();
+  this.body.unshift(next);
+  this.body.pop();
+}
 
   grow() {
     const tail = this.body[this.body.length - 1];
