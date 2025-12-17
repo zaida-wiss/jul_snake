@@ -102,8 +102,18 @@ SNAKE / FOOD
   background-repeat: no-repeat;
 }
 
+.reindeer-head {
+  background-color: rgba(255, 215, 120, 0.35);
+  background-image: url("./bilder/ren.webp");
+  background-size: cover;
+  background-position: center;
+   box-shadow:
+    0 0 14px 4px rgba(255, 220, 150, 0.22),
+    0 0 26px 12px rgba(255, 200, 100, 0.10);
+}
 .snake-head {
   background-image: url("./bilder/tomte_huvud.webp");
+
 }
 
 .snake-body {
@@ -119,11 +129,6 @@ SNAKE / FOOD
   background-position: center;
   background-repeat: no-repeat;
 
-}
-.reindeer-head {
-  background-image: url("./bilder/ren.webp");
-  background-size: cover;
-  background-position: center;
 }
 
 .santa-body {
