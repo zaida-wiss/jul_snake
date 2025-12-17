@@ -51,9 +51,21 @@ function draw() {
     cells[index]?.classList.add("snake-body");
   });
 
-  const foodIndex = game.food.y * size + game.food.x;
-  cells[foodIndex]?.classList.add("food");
+  // Reverse mode: rita ETT hus
+  if (game.mode === "reverse" && game.house) {
+    const idx = game.house.y * size + game.house.x;
+    cells[idx]?.classList.add("house");
+  }
+
+  // Classic mode: rita food
+  if (game.mode === "classic" && game.food) {
+    const foodIndex = game.food.y * size + game.food.x;
+    cells[foodIndex]?.classList.add("food");
+  }
 }
+
+
+
 
 // ===== INPUT =====
 window.addEventListener("keydown", e => {
@@ -128,10 +140,10 @@ function loop() {
 }
 
 // ===== START NEW GAME =====
-function startGame(level = 1) {
+function startGame(level = 1, mode = "classic") {
   if (loopId) clearTimeout(loopId);
 
-  game = new Game(size, level);
+  game = new Game(size, level, mode);
 
   hideGameOver();
   updateLevelLabel();
@@ -139,6 +151,12 @@ function startGame(level = 1) {
 
   loop();
 }
+
+
+const reverseBtn = document.getElementById("reverse-btn");
+reverseBtn?.addEventListener("click", () => {
+  startGame(1, "reverse");
+});
 
 // ===== CHANGE LEVEL (NO RESET) =====
 function changeLevel(level) {
@@ -149,4 +167,6 @@ function changeLevel(level) {
 
   if (loopId) clearTimeout(loopId);
   loop();
+
+
 }

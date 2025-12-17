@@ -63,4 +63,11 @@ export class Snake {
 
     return next;
   }
+    shrink() {
+    if (this.body.length > 1) this.body.pop();
+  }
+
+  setBody(body) {
+    this.body = body;
+  }
 }

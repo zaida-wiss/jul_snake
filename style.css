@@ -103,6 +103,13 @@ SNAKE / FOOD
 .food {
   background-image: url("./bilder/paket.webp");
 }
+.house {
+  background-image: url("./bilder/hus.webp");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+
+}
 
 /* ===============================
 UI PANEL
@@ -160,7 +167,7 @@ button {
   background-color: red;
 }
 /* ===============================
-   GAME OVER OVERLAY
+GAME OVER OVERLAY
 ================================ */
 
 .overlay {
@@ -179,6 +186,9 @@ button {
   background: #01121ff7;
   height: 240px;
   text-align: center;
+  background-image: url("./bilder/tomte_renar_paket.webp");
+  background-position: center;
+  background-repeat: no-repeat;
 }
 
 .overlay button {
