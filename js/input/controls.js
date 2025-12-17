@@ -1,35 +1,65 @@
-// input/controls.js
+// js/input/controls.js
+// Kontinuerlig touch-/pointerstyrning för Snake
+// Byggd för mobil (ingen scroll / zoom)
 
-export function initTouchControls(onDirection) {
-  let startX = 0;
-  let startY = 0;
+export function initTouchControls(onDirection, element = document.getElementById("game-board")) {
+  if (!element) {
+    console.warn("[Touch] game-board not found, falling back to document");
+    element = document;
+  }
+
+  let active = false;
+  let lastX = 0;
+  let lastY = 0;
   let lastDirection = null;
 
-  const DEADZONE = 20; // px – justera vid behov
+  const DEADZONE = 10; // px – mindre = känsligare
 
-  document.addEventListener(
-    "touchstart",
+  /* ---------- POINTER DOWN ---------- */
+  element.addEventListener(
+    "pointerdown",
     e => {
-      const t = e.touches[0];
-      startX = t.clientX;
-      startY = t.clientY;
+      // Stoppa scroll / zoom
+      e.preventDefault();
+
+      // Ignorera mus – detta är touchstyrning
+      if (e.pointerType === "mouse") return;
+
+      active = true;
+      lastX = e.clientX;
+      lastY = e.clientY;
       lastDirection = null;
+
+      // Fånga pekaren så vi inte tappar touch
+      try {
+        element.setPointerCapture(e.pointerId);
+      } catch {
+        // Safari kan kasta här – ofarligt
+      }
+
+      console.log("[Touch] start", lastX, lastY);
     },
-    { passive: true }
+    { passive: false }
   );
 
-  document.addEventListener(
-    "touchmove",
+  /* ---------- POINTER MOVE ---------- */
+  element.addEventListener(
+    "pointermove",
     e => {
-      const t = e.touches[0];
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
+      if (!active) return;
 
-      // Ignorera små rörelser
+      // Stoppa scroll / zoom
+      e.preventDefault();
+
+      if (e.pointerType === "mouse") return;
+
+      const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
+
+      // För små rörelser → ignorera
       if (Math.abs(dx) < DEADZONE && Math.abs(dy) < DEADZONE) return;
 
       let direction;
-
       if (Math.abs(dx) > Math.abs(dy)) {
         direction = dx > 0 ? "RIGHT" : "LEFT";
       } else {
@@ -38,14 +68,33 @@ export function initTouchControls(onDirection) {
 
       // Skicka bara om riktningen ändrats
       if (direction !== lastDirection) {
+        console.log("[Touch] direction:", direction);
         onDirection(direction);
         lastDirection = direction;
-
-        // Reset startpunkt så man kan fortsätta dra
-        startX = t.clientX;
-        startY = t.clientY;
       }
+
+      // 🔑 Reset så man kan fortsätta svepa utan att släppa
+      lastX = e.clientX;
+      lastY = e.clientY;
     },
-    { passive: true }
+    { passive: false }
   );
+
+  /* ---------- POINTER UP / CANCEL ---------- */
+  const endTouch = e => {
+    if (!active) return;
+
+    e.preventDefault();
+    active = false;
+    lastDirection = null;
+
+    try {
+      element.releasePointerCapture(e.pointerId);
+    } catch {}
+
+    console.log("[Touch] end");
+  };
+
+  element.addEventListener("pointerup", endTouch, { passive: false });
+  element.addEventListener("pointercancel", endTouch, { passive: false });
 }
