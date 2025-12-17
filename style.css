@@ -67,7 +67,9 @@ h1 {
 }
 
 #game-board {
-  
+    touch-action: none;        /* 🔑 extra viktigt */
+  user-select: none;
+  -webkit-user-select: none;
   display: grid;
   border: red 2px solid;
   width: 100%;
