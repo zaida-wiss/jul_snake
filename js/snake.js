@@ -3,11 +3,10 @@ export class Snake {
     const c = Math.floor(size / 2);
 
     // 🦌 Ren → 🎅 Tomte → 🎁 Paket
-    this.body = [
-      { x: c, y: c },
-      { x: c - 1, y: c },
-      { x: c - 2, y: c },
-    ];
+this.body = [
+  { x: c, y: c },       // 🦌 ren
+  { x: c - 1, y: c },   // 🎅 tomte
+];
 
     this.direction = "RIGHT";
     this.nextDirection = "RIGHT";
@@ -74,4 +73,25 @@ move() {
   occupies(pos) {
     return this.body.some(s => s.x === pos.x && s.y === pos.y);
   }
+  buildReverseTrain(count) {
+    const head = this.body[0];
+
+    this.body = [];
+
+    // 🦌 Ren först
+    this.body.push({ x: head.x, y: head.y, type: "reindeer" });
+
+    // 🎅 Tomte efter
+    this.body.push({ x: head.x - 1, y: head.y, type: "santa" });
+
+    // 🎁 Paket
+    for (let i = 0; i < count; i++) {
+      this.body.push({
+        x: head.x - 2 - i,
+        y: head.y,
+        type: "package",
+      });
+    }
+  }
+
 }

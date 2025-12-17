@@ -1,8 +1,9 @@
 import { Snake } from "./snake.js";
 
 export class Game {
-  constructor(size, mode = "classic") {
+  constructor(size, level = 1, mode = "classic") {
     this.size = size;
+    this.level = level;
     this.mode = mode;
     this.running = true;
 
@@ -10,76 +11,70 @@ export class Game {
 
     this.score = 0;
     this.startTime = Date.now();
-    this.packages = this.snake.body.length - 2;
 
-    this.food = null;
-    this.house = null;
+    // 🎁 MODE SETUP
+    if (this.mode === "reverse") {
+      const START_PACKAGES = 42;
 
-    console.log(`[Game] started. Mode=${mode}`);
+      this.snake.buildReverseTrain(START_PACKAGES);
+      this.packages = START_PACKAGES;
 
-    if (mode === "classic") {
-      this.spawnFood();
-    } else {
+      console.log("[Reverse] Start packages:", this.packages);
       this.spawnHouse(true);
+    } else {
+      this.packages = 0;
+      this.spawnFood();
     }
   }
 
   update() {
-  if (!this.running) return;
+    if (!this.running) return;
 
-  // 🔮 Beräkna nästa huvudposition (utan att flytta)
-  const nextHead = this.snake.getNextHead();
+    const nextHead = this.snake.getNextHead();
 
-  // 🚧 Väggkollision (FÖRE move)
-  if (
-    nextHead.x < 0 ||
-    nextHead.y < 0 ||
-    nextHead.x >= this.size ||
-    nextHead.y >= this.size
-  ) {
-    console.error("[Game] WALL COLLISION at", nextHead);
-    this.running = false;
-    return;
+    // 🚧 WALL COLLISION
+    if (
+      nextHead.x < 0 ||
+      nextHead.y < 0 ||
+      nextHead.x >= this.size ||
+      nextHead.y >= this.size
+    ) {
+      console.error("[Game] WALL COLLISION", nextHead);
+      this.running = false;
+      return;
+    }
+
+    // 🚆 BODY COLLISION
+    const bodyWithoutTail = this.snake.body.slice(0, -1);
+    if (bodyWithoutTail.some(seg => seg.x === nextHead.x && seg.y === nextHead.y)) {
+      console.error("[Game] BODY COLLISION", nextHead);
+      this.running = false;
+      return;
+    }
+
+    // ✅ SAFE MOVE
+    this.snake.move();
+
+    if (this.mode === "classic") this.checkFood();
+    if (this.mode === "reverse") this.checkHouse();
   }
-
-  // 🚆 Kroppskollision (FÖRE move)
-  // OBS: tillåter att gå in i sista segmentet om det flyttas bort
-  const bodyWithoutTail =
-    this.snake.body.length > 1
-      ? this.snake.body.slice(0, -1)
-      : this.snake.body;
-
-  if (bodyWithoutTail.some(seg => seg.x === nextHead.x && seg.y === nextHead.y)) {
-    console.error("[Game] BODY COLLISION at", nextHead);
-    this.running = false;
-    return;
-  }
-
-  // ✅ Nu är det säkert att flytta
-  this.snake.move();
-
-  // 🍎 Classic mode
-  if (this.mode === "classic") {
-    this.checkFood();
-  }
-
-  // 🏠 Reverse mode
-  if (this.mode === "reverse") {
-    this.checkHouse();
-  }
-}
 
   /* ---------- CLASSIC ---------- */
 
   checkFood() {
-    const h = this.snake.body[0];
     if (!this.food) return;
 
-    if (h.x === this.food.x && h.y === this.food.y) {
-      console.log("[Game] FOOD EATEN");
+    const head = this.snake.body[0];
+
+    if (head.x === this.food.x && head.y === this.food.y) {
       this.snake.grow();
       this.packages++;
-      this.score += 10;
+
+      const BASE_SCORE = 10;
+      this.score += BASE_SCORE * this.level;
+
+      console.log(`[Classic] +${BASE_SCORE * this.level} (level ${this.level})`);
+
       this.spawnFood();
     }
   }
@@ -92,29 +87,33 @@ export class Game {
   /* ---------- REVERSE ---------- */
 
   checkHouse() {
-    const h = this.snake.body[0];
     if (!this.house) return;
 
-    if (h.x === this.house.x && h.y === this.house.y) {
-      console.log("[Game] HOUSE HIT");
-      this.snake.shrink();
-      this.packages = this.snake.body.length - 2;
+    const head = this.snake.body[0];
+
+    if (head.x === this.house.x && head.y === this.house.y) {
+      this.snake.removeLastPackage();
+      this.packages--;
+
+      const BASE_SCORE = 10;
+      this.score += BASE_SCORE * this.level;
+
+      console.log(`[Reverse] +${BASE_SCORE * this.level} (level ${this.level})`);
 
       if (this.packages <= 0) {
-        console.warn("[Game] NO PACKAGES LEFT → GAME OVER");
+        console.log("[Reverse] ALL PACKAGES SAVED 🎉");
         this.running = false;
+        this.win = true;
         return;
       }
 
-      const near = this.packages <= 10;
-      this.house = this.getFreePosition(near);
-      console.log("[Game] new house:", this.house, "nearHead:", near);
+      this.spawnHouse(this.packages > 10);
     }
   }
 
-  spawnHouse(near) {
-    this.house = this.getFreePosition(near);
-    console.log("[Game] spawn house:", this.house, "nearHead:", near);
+  spawnHouse(nearHead = false) {
+    this.house = this.getFreePosition(nearHead);
+    console.log("[Game] spawn house:", this.house);
   }
 
   /* ---------- HELPERS ---------- */
@@ -124,17 +123,15 @@ export class Game {
     const head = this.snake.body[0];
 
     do {
-      if (nearHead) {
-        pos = {
-          x: Math.max(0, Math.min(this.size - 1, head.x + rand(-3, 3))),
-          y: Math.max(0, Math.min(this.size - 1, head.y + rand(-3, 3))),
-        };
-      } else {
-        pos = {
-          x: Math.floor(Math.random() * this.size),
-          y: Math.floor(Math.random() * this.size),
-        };
-      }
+      pos = nearHead
+        ? {
+            x: Math.max(0, Math.min(this.size - 1, head.x + rand(-3, 3))),
+            y: Math.max(0, Math.min(this.size - 1, head.y + rand(-3, 3))),
+          }
+        : {
+            x: Math.floor(Math.random() * this.size),
+            y: Math.floor(Math.random() * this.size),
+          };
     } while (this.snake.occupies(pos));
 
     return pos;

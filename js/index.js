@@ -6,8 +6,7 @@ const size = 15;
 let game = null;
 let loopId = null;
 let currentLevel = 1;
-
-let currentMode = "classic"; // 🔑
+let currentMode = "classic";
 
 const LEVELS = {
   1: 900,
@@ -26,21 +25,23 @@ board.innerHTML = "";
 
 for (let y = 0; y < size; y++) {
   for (let x = 0; x < size; x++) {
-    const c = document.createElement("div");
-    c.className = "cell";
-    board.appendChild(c);
-    cells.push(c);
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    board.appendChild(cell);
+    cells.push(cell);
   }
 }
 
-/* ---------- LOOP ---------- */
+/* ---------- GAME LOOP ---------- */
 
 function loop() {
-  if (!game.running) {
+  if (!game || !game.running) {
     console.warn("[Index] GAME OVER");
+
     document.getElementById("final-score").textContent = game.score;
     document.getElementById("final-packages").textContent = game.packages;
     document.getElementById("final-time").textContent = game.getElapsedTime();
+
     document.getElementById("game-over").classList.remove("hidden");
     return;
   }
@@ -52,20 +53,20 @@ function loop() {
   loopId = setTimeout(loop, LEVELS[currentLevel]);
 }
 
-/* ---------- START / LEVEL ---------- */
+/* ---------- START / MODE / LEVEL ---------- */
 
 function startGame(mode = currentMode) {
-  console.log("[Index] startGame, mode:", mode);
+  console.log("[Index] startGame:", mode, "level:", currentLevel);
 
-  // 🔑 DÖLJ GAME OVER OVERLAY ALLTID
-  const overlay = document.getElementById("game-over");
-  overlay.classList.add("hidden");
+  // dölj overlay alltid
+  document.getElementById("game-over").classList.add("hidden");
 
   currentMode = mode;
 
   if (loopId) clearTimeout(loopId);
 
-  game = new Game(size, mode);
+  // 🔑 SKICKA MED LEVEL TILL GAME
+  game = new Game(size, currentLevel, mode);
 
   loop();
 }
@@ -73,6 +74,11 @@ function startGame(mode = currentMode) {
 function changeLevel(level) {
   currentLevel = level;
   console.log("[Index] change level:", level);
+
+  // uppdatera spelet direkt om det körs
+  if (game) {
+    game.level = currentLevel;
+  }
 
   if (loopId) clearTimeout(loopId);
   loop();
@@ -83,20 +89,26 @@ function changeLevel(level) {
 function draw() {
   cells.forEach(c => (c.className = "cell"));
 
-  game.snake.body.forEach((s, i) => {
-    const idx = s.y * size + s.x;
+  game.snake.body.forEach((seg, i) => {
+    const idx = seg.y * size + seg.x;
     if (!cells[idx]) return;
 
-    if (i === 0) cells[idx].classList.add("reindeer-head");
-    else if (i === 1) cells[idx].classList.add("santa-body");
-    else cells[idx].classList.add("snake-body");
+    if (i === 0) {
+      cells[idx].classList.add("reindeer-head");
+    } else if (i === 1) {
+      cells[idx].classList.add("santa-body");
+    } else {
+      cells[idx].classList.add("snake-body");
+    }
   });
 
-  if (game.food)
+  if (game.food) {
     cells[game.food.y * size + game.food.x]?.classList.add("food");
+  }
 
-  if (game.house)
+  if (game.house) {
     cells[game.house.y * size + game.house.x]?.classList.add("house");
+  }
 }
 
 /* ---------- HUD ---------- */
@@ -117,11 +129,13 @@ window.addEventListener("keydown", e => {
     ArrowRight: "RIGHT",
   };
 
-  if (map[e.key]) {
+  if (map[e.key] && game) {
     console.log("[Index] key:", e.key);
     game.snake.setDirection(map[e.key]);
   }
 });
+
+/* ---------- BUTTONS ---------- */
 
 document.querySelectorAll(".level-select button").forEach(btn => {
   btn.onclick = () => changeLevel(Number(btn.dataset.level));
@@ -129,6 +143,7 @@ document.querySelectorAll(".level-select button").forEach(btn => {
 
 document.getElementById("start-btn").onclick = () => startGame("classic");
 document.getElementById("reverse-btn").onclick = () => startGame("reverse");
+
 document.getElementById("restart-btn").onclick = () => {
   console.log("[UI] Restart clicked");
   startGame(game ? game.mode : currentMode);
