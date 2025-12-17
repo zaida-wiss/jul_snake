@@ -182,7 +182,6 @@ GAME OVER OVERLAY
 ================================ */
 
 #game-over {
-  display: flex;
   background-image: url("./bilder/tomte_renar_paket.webp");
   background-position: center top;
   background-repeat: no-repeat;
@@ -191,7 +190,6 @@ GAME OVER OVERLAY
 
 .overlay {
   position: absolute;
-  pointer-events: auto;
   inset: 0;
   display: grid;
   place-items: center;
@@ -201,7 +199,7 @@ GAME OVER OVERLAY
 
 .overlay-content {
   width: 100%;
-  max-width: 500px;
+  max-height: 400px;
   padding-top: 50px;
   text-align: center;
   line-height: 1.0;
@@ -217,7 +215,7 @@ GAME OVER OVERLAY
 }
 
 .hidden {
-  display: none !important;
+  display: none ;
   pointer-events: none;
 }
 
