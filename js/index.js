@@ -5,168 +5,119 @@ const size = 15;
 
 let game = null;
 let loopId = null;
+let currentLevel = 1;
 
-// ===== OVERLAY =====
-const overlay = document.getElementById("game-over");
-const restartBtn = document.getElementById("restart-btn");
-const startBtn = document.getElementById("start-btn");
-
-// ===== LEVEL SETTINGS =====
-const LEVEL_SETTINGS = {
-  1: { speed: 950, multiplier: 1 },
-  2: { speed: 720, multiplier: 2 },
-  3: { speed: 580, multiplier: 3 },
-  4: { speed: 350, multiplier: 4 },
-  5: { speed: 120, multiplier: 5 },
+const LEVELS = {
+  1: 900,
+  2: 700,
+  3: 550,
+  4: 350,
+  5: 120,
 };
 
-// ===== GRID =====
+console.log("[Index] loaded");
+
+/* ---------- GRID ---------- */
+
 const cells = [];
+board.innerHTML = "";
+
 for (let y = 0; y < size; y++) {
   for (let x = 0; x < size; x++) {
-    const cell = document.createElement("div");
-    cell.classList.add("cell");
-    board.appendChild(cell);
-    cells.push(cell);
+    const c = document.createElement("div");
+    c.className = "cell";
+    board.appendChild(c);
+    cells.push(c);
   }
 }
 
-// ===== UI =====
-function updateLevelLabel() {
-  document.querySelector(".level-select span").textContent =
-    `Level: ${game.level} (speed ${LEVEL_SETTINGS[game.level].speed} ms)`;
+/* ---------- LOOP ---------- */
 
-  document.getElementById("packages").textContent = game.packages;
-}
-
-// ===== DRAW =====
-function draw() {
-  cells.forEach(cell => (cell.className = "cell"));
-
-  const head = game.snake.body[0];
-  cells[head.y * size + head.x]?.classList.add("snake-head");
-
-  game.snake.body.slice(1).forEach(seg => {
-    const index = seg.y * size + seg.x;
-    cells[index]?.classList.add("snake-body");
-  });
-
-  // Reverse mode: rita ETT hus
-  if (game.mode === "reverse" && game.house) {
-    const idx = game.house.y * size + game.house.x;
-    cells[idx]?.classList.add("house");
-  }
-
-  // Classic mode: rita food
-  if (game.mode === "classic" && game.food) {
-    const foodIndex = game.food.y * size + game.food.x;
-    cells[foodIndex]?.classList.add("food");
-  }
-}
-
-
-
-
-// ===== INPUT =====
-window.addEventListener("keydown", e => {
-  if (!game || !game.running) return;
-
-  if (e.key === "ArrowUp") game.snake.setDirection("UP");
-  if (e.key === "ArrowDown") game.snake.setDirection("DOWN");
-  if (e.key === "ArrowLeft") game.snake.setDirection("LEFT");
-  if (e.key === "ArrowRight") game.snake.setDirection("RIGHT");
-});
-
-document.querySelectorAll(".controls button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    if (!game || !game.running) return;
-    game.snake.setDirection(btn.dataset.dir);
-  });
-});
-
-// ===== LEVEL SELECT (BYT LEVEL UTAN RESET) =====
-document.querySelectorAll(".level-select button").forEach(btn => {
-  btn.addEventListener("click", () => {
-    const level = Number(btn.dataset.level);
-
-    document
-      .querySelectorAll(".level-select button")
-      .forEach(b => b.classList.remove("active"));
-    btn.classList.add("active");
-
-    changeLevel(level);
-  });
-});
-
-// ===== RESTART =====
-restartBtn.addEventListener("click", () => {
-  if (!game) return;
-  startGame(game.level);
-});
-
-// ===== START =====
-startBtn.addEventListener("click", () => {
-  startGame(1);
-});
-
-// ===== GAME FLOW =====
-function hideGameOver() {
-  overlay.classList.add("hidden");
-}
-
-function showFinalResult() {
-  document.getElementById("final-score").textContent = game.score;
-  document.getElementById("final-packages").textContent = game.packages;
-  document.getElementById("final-time").textContent = game.getElapsedTime();
-
-  overlay.classList.remove("hidden");
-}
-
-// ===== MAIN LOOP =====
 function loop() {
   if (!game.running) {
-    showFinalResult();
+    console.warn("[Index] GAME OVER");
+    document.getElementById("final-score").textContent = game.score;
+    document.getElementById("final-packages").textContent = game.packages;
+    document.getElementById("final-time").textContent = game.getElapsedTime();
+    document.getElementById("game-over").classList.remove("hidden");
     return;
   }
 
   game.update();
   draw();
+  updateHUD();
 
+  loopId = setTimeout(loop, LEVELS[currentLevel]);
+}
+
+/* ---------- START / LEVEL ---------- */
+
+function startGame(mode = "classic") {
+  console.log("[Index] start game:", mode);
+
+  if (loopId) clearTimeout(loopId);
+  game = new Game(size, mode);
+  document.getElementById("game-over").classList.add("hidden");
+  loop();
+}
+
+function changeLevel(level) {
+  currentLevel = level;
+  console.log("[Index] change level:", level);
+
+  if (loopId) clearTimeout(loopId);
+  loop();
+}
+
+/* ---------- DRAW ---------- */
+
+function draw() {
+  cells.forEach(c => (c.className = "cell"));
+
+  game.snake.body.forEach((s, i) => {
+    const idx = s.y * size + s.x;
+    if (!cells[idx]) return;
+
+    if (i === 0) cells[idx].classList.add("reindeer-head");
+    else if (i === 1) cells[idx].classList.add("santa-body");
+    else cells[idx].classList.add("snake-body");
+  });
+
+  if (game.food)
+    cells[game.food.y * size + game.food.x]?.classList.add("food");
+
+  if (game.house)
+    cells[game.house.y * size + game.house.x]?.classList.add("house");
+}
+
+/* ---------- HUD ---------- */
+
+function updateHUD() {
   document.getElementById("score").textContent = game.score;
   document.getElementById("packages").textContent = game.packages;
   document.getElementById("time").textContent = game.getElapsedTime();
-
-  loopId = setTimeout(loop, LEVEL_SETTINGS[game.level].speed);
 }
 
-// ===== START NEW GAME =====
-function startGame(level = 1, mode = "classic") {
-  if (loopId) clearTimeout(loopId);
+/* ---------- INPUT ---------- */
 
-  game = new Game(size, level, mode);
+window.addEventListener("keydown", e => {
+  const map = {
+    ArrowUp: "UP",
+    ArrowDown: "DOWN",
+    ArrowLeft: "LEFT",
+    ArrowRight: "RIGHT",
+  };
 
-  hideGameOver();
-  updateLevelLabel();
-  draw();
-
-  loop();
-}
-
-
-const reverseBtn = document.getElementById("reverse-btn");
-reverseBtn?.addEventListener("click", () => {
-  startGame(1, "reverse");
+  if (map[e.key]) {
+    console.log("[Index] key:", e.key);
+    game.snake.setDirection(map[e.key]);
+  }
 });
 
-// ===== CHANGE LEVEL (NO RESET) =====
-function changeLevel(level) {
-  if (!game || !game.running) return;
+document.querySelectorAll(".level-select button").forEach(btn => {
+  btn.onclick = () => changeLevel(Number(btn.dataset.level));
+});
 
-  game.level = level;
-  updateLevelLabel();
-
-  if (loopId) clearTimeout(loopId);
-  loop();
-
-
-}
+document.getElementById("start-btn").onclick = () => startGame("classic");
+document.getElementById("reverse-btn").onclick = () => startGame("reverse");
+document.getElementById("restart-btn").onclick = () => startGame(game.mode);

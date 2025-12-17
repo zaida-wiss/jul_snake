@@ -1,168 +1,140 @@
-// js/jul_snake/game.js
 import { Snake } from "./snake.js";
 
 export class Game {
-  constructor(size, level = 1, mode = "classic") {
+  constructor(size, mode = "classic") {
     this.size = size;
-    this.level = level;
-    this.mode = mode; // "classic" | "reverse"
+    this.mode = mode;
+    this.running = true;
 
     this.snake = new Snake(size);
 
     this.score = 0;
-    this.packages = 0;
     this.startTime = Date.now();
-    this.running = true;
+    this.packages = this.snake.body.length - 2;
 
-    // reverse-mode state
+    this.food = null;
     this.house = null;
 
-    if (this.mode === "reverse") {
-      this.setupReverseMode();
+    console.log(`[Game] started. Mode=${mode}`);
+
+    if (mode === "classic") {
+      this.spawnFood();
     } else {
-      this.food = this.spawnFood();
+      this.spawnHouse(true);
     }
-  }
-
-setupReverseMode() {
-  const cx = Math.floor(this.size / 2);
-  const cy = Math.floor(this.size / 2);
-
-  const body = [];
-
-  // 🦌 Renen – HUVUDET
-  body.push({ x: cx, y: cy, type: "reindeer" });
-
-  // 🎅 Tomten – alltid efter renen
-  body.push({ x: cx - 1, y: cy, type: "santa" });
-
-  // 🎁 Paketen
-  for (let i = 0; i < this.size * this.size - 4; i++) {
-    body.push({
-      x: cx - 2 - i,
-      y: cy,
-      type: "package",
-    });
-  }
-
-  this.snake.setBody(body);
-
-  // endast paket räknas
-  this.packages = body.filter(s => s.type === "package").length;
-
-  // ett hus
-  this.house = this.spawnHouse();
-}
-
-
-  createNearlyFullSnakeBody() {
-    // Serpentin-fyllning: rad 0 vänster->höger, rad 1 höger->vänster, osv.
-    // Vi lämnar sista cellen tom: (size-1, size-1)
-    const body = [];
-    for (let y = 0; y < this.size; y++) {
-      if (y % 2 === 0) {
-        for (let x = 0; x < this.size; x++) {
-          if (x === this.size - 1 && y === this.size - 1) continue;
-          body.push({ x, y });
-        }
-      } else {
-        for (let x = this.size - 1; x >= 0; x--) {
-          if (x === this.size - 1 && y === this.size - 1) continue;
-          body.push({ x, y });
-        }
-      }
-    }
-    // body[0] blir head, resten blir paket
-    return body;
-  }
-
-  getElapsedTime() {
-    const seconds = Math.floor((Date.now() - this.startTime) / 1000);
-    const min = Math.floor(seconds / 60);
-    const sec = seconds % 60;
-    return `${min}:${sec.toString().padStart(2, "0")}`;
-  }
-
-  spawnFood() {
-    let food;
-    do {
-      food = {
-        x: Math.floor(Math.random() * this.size),
-        y: Math.floor(Math.random() * this.size),
-      };
-    } while (this.snake.body.some(seg => seg.x === food.x && seg.y === food.y));
-    return food;
-  }
-
-  spawnHouse() {
-    let house;
-    do {
-      house = {
-        x: Math.floor(Math.random() * this.size),
-        y: Math.floor(Math.random() * this.size),
-      };
-    } while (
-      this.snake.body.some(seg => seg.x === house.x && seg.y === house.y)
-    );
-    return house;
   }
 
   update() {
     if (!this.running) return;
 
-    const nextHead = this.snake.getNextHead();
-
-    // Väggkollision = game over (du kan ändra till "stanna" om du vill)
-    if (
-      nextHead.x < 0 ||
-      nextHead.y < 0 ||
-      nextHead.x >= this.size ||
-      nextHead.y >= this.size
-    ) {
-      this.running = false;
-      return;
-    }
-
     this.snake.move();
-
-    // Självkollision
-    if (this.snake.hitsItself()) {
-      this.running = false;
-      return;
-    }
-
     const head = this.snake.body[0];
 
-// ===== REVERSE MODE =====
-if (this.mode === "reverse") {
-  const head = this.snake.body[0];
-
-  if (head.x === this.house.x && head.y === this.house.y) {
-    // ta bort ett paket
-    if (this.snake.body.length > 1) {
-      this.snake.shrink();
-      this.packages--;
-    }
-
-    // win condition
-    if (this.packages <= 0) {
+    // Väggkollision
+    if (
+      head.x < 0 ||
+      head.y < 0 ||
+      head.x >= this.size ||
+      head.y >= this.size
+    ) {
+      console.error("[Game] WALL COLLISION");
       this.running = false;
       return;
     }
 
-    // spawn nytt hus
-    this.house = this.spawnHouse();
-  }
+    // Kroppskollision
+    if (this.snake.isSelfCollision()) {
+      console.error("[Game] BODY COLLISION");
+      this.running = false;
+      return;
+    }
 
-  return;
-}
-
-    // ===== CLASSIC MODE (som du har idag) =====
-    if (head.x === this.food.x && head.y === this.food.y) {
-      this.snake.grow();
-      this.food = this.spawnFood();
-      this.packages++;
-      this.score += 10 * this.level;
+    if (this.mode === "classic") {
+      this.checkFood();
+    } else {
+      this.checkHouse();
     }
   }
+
+  /* ---------- CLASSIC ---------- */
+
+  checkFood() {
+    const h = this.snake.body[0];
+    if (!this.food) return;
+
+    if (h.x === this.food.x && h.y === this.food.y) {
+      console.log("[Game] FOOD EATEN");
+      this.snake.grow();
+      this.packages++;
+      this.score += 10;
+      this.spawnFood();
+    }
+  }
+
+  spawnFood() {
+    this.food = this.getFreePosition();
+    console.log("[Game] spawn food:", this.food);
+  }
+
+  /* ---------- REVERSE ---------- */
+
+  checkHouse() {
+    const h = this.snake.body[0];
+    if (!this.house) return;
+
+    if (h.x === this.house.x && h.y === this.house.y) {
+      console.log("[Game] HOUSE HIT");
+      this.snake.shrink();
+      this.packages = this.snake.body.length - 2;
+
+      if (this.packages <= 0) {
+        console.warn("[Game] NO PACKAGES LEFT → GAME OVER");
+        this.running = false;
+        return;
+      }
+
+      const near = this.packages <= 10;
+      this.house = this.getFreePosition(near);
+      console.log("[Game] new house:", this.house, "nearHead:", near);
+    }
+  }
+
+  spawnHouse(near) {
+    this.house = this.getFreePosition(near);
+    console.log("[Game] spawn house:", this.house, "nearHead:", near);
+  }
+
+  /* ---------- HELPERS ---------- */
+
+  getFreePosition(nearHead = false) {
+    let pos;
+    const head = this.snake.body[0];
+
+    do {
+      if (nearHead) {
+        pos = {
+          x: Math.max(0, Math.min(this.size - 1, head.x + rand(-3, 3))),
+          y: Math.max(0, Math.min(this.size - 1, head.y + rand(-3, 3))),
+        };
+      } else {
+        pos = {
+          x: Math.floor(Math.random() * this.size),
+          y: Math.floor(Math.random() * this.size),
+        };
+      }
+    } while (this.snake.occupies(pos));
+
+    return pos;
+  }
+
+  getElapsedTime() {
+    const s = Math.floor((Date.now() - this.startTime) / 1000);
+    return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(
+      s % 60
+    ).padStart(2, "0")}`;
+  }
+}
+
+function rand(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }

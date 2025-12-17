@@ -110,6 +110,17 @@ SNAKE / FOOD
   background-repeat: no-repeat;
 
 }
+.reindeer-head {
+  background-image: url("./bilder/ren.webp");
+  background-size: cover;
+  background-position: center;
+}
+
+.santa-body {
+  background-image: url("./bilder/tomte_huvud.webp");
+  background-size: cover;
+  background-position: center;
+}
 
 /* ===============================
 UI PANEL

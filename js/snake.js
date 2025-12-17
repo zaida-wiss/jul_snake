@@ -1,17 +1,18 @@
-// js/jul_snake/snake.js
-
 export class Snake {
   constructor(size) {
-    const center = Math.floor(size / 2);
+    const c = Math.floor(size / 2);
 
+    // 🦌 Ren → 🎅 Tomte → 🎁 Paket
     this.body = [
-      { x: center, y: center },
-      { x: center - 1, y: center },
-      { x: center - 2, y: center },
+      { x: c, y: c },
+      { x: c - 1, y: c },
+      { x: c - 2, y: c },
     ];
 
     this.direction = "RIGHT";
     this.nextDirection = "RIGHT";
+
+    console.log("[Snake] init body:", this.body);
   }
 
   setDirection(dir) {
@@ -24,50 +25,53 @@ export class Snake {
 
     if (dir !== opposites[this.direction]) {
       this.nextDirection = dir;
+      console.log("[Snake] direction set to:", dir);
     }
   }
 
   move() {
     this.direction = this.nextDirection;
     const head = this.body[0];
-    const newHead = { ...head };
 
-    if (this.direction === "UP") newHead.y--;
-    if (this.direction === "DOWN") newHead.y++;
-    if (this.direction === "LEFT") newHead.x--;
-    if (this.direction === "RIGHT") newHead.x++;
+    const moves = {
+      UP: { x: 0, y: -1 },
+      DOWN: { x: 0, y: 1 },
+      LEFT: { x: -1, y: 0 },
+      RIGHT: { x: 1, y: 0 },
+    };
 
-    this.body.unshift(newHead);
+    const next = {
+      x: head.x + moves[this.direction].x,
+      y: head.y + moves[this.direction].y,
+    };
+
+    this.body.unshift(next);
     this.body.pop();
+
+    console.log("[Snake] moved. New head:", next);
   }
 
   grow() {
     const tail = this.body[this.body.length - 1];
     this.body.push({ ...tail });
+    console.log("[Snake] grew. Length:", this.body.length);
   }
 
-  hitsItself() {
+  shrink() {
+    if (this.body.length > 2) {
+      this.body.pop();
+      console.log("[Snake] shrink. Length:", this.body.length);
+    }
+  }
+
+  isSelfCollision() {
     const [head, ...rest] = this.body;
-    return rest.some(
-      seg => seg.x === head.x && seg.y === head.y
-    );
-  }
-  getNextHead() {
-    const head = this.body[0];
-    const next = { ...head };
-
-    if (this.nextDirection === "UP") next.y--;
-    if (this.nextDirection === "DOWN") next.y++;
-    if (this.nextDirection === "LEFT") next.x--;
-    if (this.nextDirection === "RIGHT") next.x++;
-
-    return next;
-  }
-    shrink() {
-    if (this.body.length > 1) this.body.pop();
+    const hit = rest.some(s => s.x === head.x && s.y === head.y);
+    if (hit) console.warn("[Snake] SELF COLLISION");
+    return hit;
   }
 
-  setBody(body) {
-    this.body = body;
+  occupies(pos) {
+    return this.body.some(s => s.x === pos.x && s.y === pos.y);
   }
 }
