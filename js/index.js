@@ -32,20 +32,31 @@ function gameLoop() {
   const game = gameRef.current;
   if (!game) return;
 
-if (!game.running) {
-  if (game.win) {
-    showWin(game);
-  } else {
-    showGameOver(game);
-  }
-  return;
-}
+  // 🛑 SPELET HAR STANNAT
+  if (!game.running) {
+    console.warn("[Index] GAME STOPPED", {
+      win: game.win,
+      reason: game.reason,
+    });
 
+    if (game.win) {
+      showWin(game);        // 🎉 VINST
+    } else {
+      showGameOver(game);   // 💀 GAME OVER
+    }
+
+    return;
+  }
+
+  // ▶️ SPELET PÅGÅR
   game.update();
   renderGame(cells, game, BOARD_SIZE);
   updateHUD(game);
 
-  loopId = setTimeout(gameLoop, LEVEL_SPEED[currentLevel]);
+  loopId = setTimeout(
+    gameLoop,
+    LEVEL_SPEED[currentLevel]
+  );
 }
 
 /* ---------- START / MODE ---------- */
