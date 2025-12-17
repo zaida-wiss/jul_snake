@@ -8,6 +8,8 @@ let loopId = null;
 let currentLevel = 1;
 let currentMode = "classic";
 
+/* ---------- LEVEL SPEED ---------- */
+
 const LEVELS = {
   1: 900,
   2: 700,
@@ -40,7 +42,8 @@ function loop() {
 
     document.getElementById("final-score").textContent = game.score;
     document.getElementById("final-packages").textContent = game.packages;
-    document.getElementById("final-time").textContent = game.getElapsedTime();
+    document.getElementById("final-time").textContent =
+      game.getElapsedTime();
 
     document.getElementById("game-over").classList.remove("hidden");
     return;
@@ -53,29 +56,36 @@ function loop() {
   loopId = setTimeout(loop, LEVELS[currentLevel]);
 }
 
-/* ---------- START / MODE / LEVEL ---------- */
+/* ---------- START / MODE ---------- */
 
 function startGame(mode = currentMode) {
-  console.log("[Index] startGame:", mode, "level:", currentLevel);
+  console.log(
+    "[Index] startGame → mode:",
+    mode,
+    "level:",
+    currentLevel
+  );
 
-  // dölj overlay alltid
+  // dölj game over-overlay
   document.getElementById("game-over").classList.add("hidden");
 
   currentMode = mode;
 
   if (loopId) clearTimeout(loopId);
 
-  // 🔑 SKICKA MED LEVEL TILL GAME
+  // 🔑 SKICKA LEVEL TILL GAME
   game = new Game(size, currentLevel, mode);
 
   loop();
 }
 
+/* ---------- LEVEL CHANGE ---------- */
+
 function changeLevel(level) {
   currentLevel = level;
   console.log("[Index] change level:", level);
 
-  // uppdatera spelet direkt om det körs
+  // uppdatera pågående spel
   if (game) {
     game.level = currentLevel;
   }
@@ -103,11 +113,13 @@ function draw() {
   });
 
   if (game.food) {
-    cells[game.food.y * size + game.food.x]?.classList.add("food");
+    cells[game.food.y * size + game.food.x]
+      ?.classList.add("food");
   }
 
   if (game.house) {
-    cells[game.house.y * size + game.house.x]?.classList.add("house");
+    cells[game.house.y * size + game.house.x]
+      ?.classList.add("house");
   }
 }
 
@@ -116,12 +128,15 @@ function draw() {
 function updateHUD() {
   document.getElementById("score").textContent = game.score;
   document.getElementById("packages").textContent = game.packages;
-  document.getElementById("time").textContent = game.getElapsedTime();
+  document.getElementById("time").textContent =
+    game.getElapsedTime();
 }
 
 /* ---------- INPUT ---------- */
 
 window.addEventListener("keydown", e => {
+  if (!game) return;
+
   const map = {
     ArrowUp: "UP",
     ArrowDown: "DOWN",
@@ -129,8 +144,8 @@ window.addEventListener("keydown", e => {
     ArrowRight: "RIGHT",
   };
 
-  if (map[e.key] && game) {
-    console.log("[Index] key:", e.key);
+  if (map[e.key]) {
+    console.log("[Input] key:", e.key);
     game.snake.setDirection(map[e.key]);
   }
 });
@@ -138,11 +153,15 @@ window.addEventListener("keydown", e => {
 /* ---------- BUTTONS ---------- */
 
 document.querySelectorAll(".level-select button").forEach(btn => {
-  btn.onclick = () => changeLevel(Number(btn.dataset.level));
+  btn.onclick = () =>
+    changeLevel(Number(btn.dataset.level));
 });
 
-document.getElementById("start-btn").onclick = () => startGame("classic");
-document.getElementById("reverse-btn").onclick = () => startGame("reverse");
+document.getElementById("start-btn").onclick = () =>
+  startGame("classic");
+
+document.getElementById("reverse-btn").onclick = () =>
+  startGame("reverse");
 
 document.getElementById("restart-btn").onclick = () => {
   console.log("[UI] Restart clicked");
