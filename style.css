@@ -9,15 +9,15 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overscroll-behavior: none;
-  touch-action: none;
 
+  overscroll-behavior: none;  /* stoppar bounce */
+  touch-action: none;         /* stoppar touch-scroll & zoom */
 }
 
 body {
   margin: 0;
   width: 100%;
-  overflow-x: hidden; /* skyddsnät */
+  overflow: hidden; /* stoppar all scroll */
   background: #0b1d2a;
   color: #fff;
   font-family: system-ui, sans-serif;
@@ -67,14 +67,16 @@ h1 {
 }
 
 #game-board {
-    touch-action: none;        /* 🔑 extra viktigt */
+  touch-action: none;        /* 🔑 extra viktigt */
   user-select: none;
   -webkit-user-select: none;
-  display: grid;
+
   border: red 2px solid;
+
   width: 100%;
-  grid-template-columns: repeat(15, 1fr); /* Automatiskt fördelad bredd */
   background-color: #ffffff;
+  display: grid;
+  grid-template-columns: repeat(15, 1fr); /* Automatiskt fördelad bredd */
 }
 
 /* ===============================

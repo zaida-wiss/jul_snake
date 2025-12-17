@@ -1,11 +1,13 @@
 // js/input/controls.js
-// Kontinuerlig touch-/pointerstyrning för Snake
-// Byggd för mobil (ingen scroll / zoom)
+// Kontinuerlig touch-/pointerstyrning (håll & svep)
 
-export function initTouchControls(onDirection, element = document.getElementById("game-board")) {
+export function initTouchControls(
+  onDirection,
+  element = document.getElementById("game-board")
+) {
   if (!element) {
-    console.warn("[Touch] game-board not found, falling back to document");
-    element = document;
+    console.warn("[Touch] game-board not found");
+    return;
   }
 
   let active = false;
@@ -13,29 +15,24 @@ export function initTouchControls(onDirection, element = document.getElementById
   let lastY = 0;
   let lastDirection = null;
 
-  const DEADZONE = 10; // px – mindre = känsligare
+  const DEADZONE = 8; // px – känslighet
 
   /* ---------- POINTER DOWN ---------- */
   element.addEventListener(
     "pointerdown",
     e => {
-      // Stoppa scroll / zoom
-      e.preventDefault();
-
-      // Ignorera mus – detta är touchstyrning
       if (e.pointerType === "mouse") return;
+
+      e.preventDefault();
 
       active = true;
       lastX = e.clientX;
       lastY = e.clientY;
       lastDirection = null;
 
-      // Fånga pekaren så vi inte tappar touch
       try {
         element.setPointerCapture(e.pointerId);
-      } catch {
-        // Safari kan kasta här – ofarligt
-      }
+      } catch {}
 
       console.log("[Touch] start", lastX, lastY);
     },
@@ -46,17 +43,13 @@ export function initTouchControls(onDirection, element = document.getElementById
   element.addEventListener(
     "pointermove",
     e => {
-      if (!active) return;
+      if (!active || e.pointerType === "mouse") return;
 
-      // Stoppa scroll / zoom
       e.preventDefault();
-
-      if (e.pointerType === "mouse") return;
 
       const dx = e.clientX - lastX;
       const dy = e.clientY - lastY;
 
-      // För små rörelser → ignorera
       if (Math.abs(dx) < DEADZONE && Math.abs(dy) < DEADZONE) return;
 
       let direction;
@@ -66,14 +59,13 @@ export function initTouchControls(onDirection, element = document.getElementById
         direction = dy > 0 ? "DOWN" : "UP";
       }
 
-      // Skicka bara om riktningen ändrats
       if (direction !== lastDirection) {
         console.log("[Touch] direction:", direction);
         onDirection(direction);
         lastDirection = direction;
       }
 
-      // 🔑 Reset så man kan fortsätta svepa utan att släppa
+      // 🔑 gör att man kan fortsätta svepa utan att släppa
       lastX = e.clientX;
       lastY = e.clientY;
     },
