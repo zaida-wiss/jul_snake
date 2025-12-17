@@ -1,5 +1,9 @@
+// core/game.js
 import { Snake } from "../entities/snake.js";
 import { spawnFreePosition } from "../utils/spawn.js";
+
+const CLASSIC_MAX_PACKAGES = 223;
+const BASE_SCORE = 5;
 
 export class Game {
   constructor(size, mode = "classic", level = 1) {
@@ -9,6 +13,7 @@ export class Game {
 
     this.running = true;
     this.win = false;
+    this.reason = null;
 
     this.snake = new Snake(size);
 
@@ -16,65 +21,73 @@ export class Game {
     this.packages = 0;
     this.startTime = Date.now();
 
-    // init targets
     this.food = null;
     this.house = null;
 
     if (this.mode === "reverse") {
-      const START_PACKAGES = 42;
+      const START_PACKAGES = 102;
       this.snake.buildReverseTrain(START_PACKAGES);
       this.packages = START_PACKAGES;
 
-      // 🔑 spawn första huset på tom ruta (gärna nära)
       this.house = spawnFreePosition(this, true);
     } else {
-      // classic startar med 0 paket
-      this.packages = 0;
-
-      // 🔑 spawn första maten på tom ruta
+      // classic
       this.food = spawnFreePosition(this, false);
     }
 
-    console.log("[Game] started", { mode: this.mode, level: this.level });
+    console.log("[Game] started", {
+      mode: this.mode,
+      level: this.level,
+      packages: this.packages,
+    });
   }
+
+  /* ================= UPDATE ================= */
 
   update() {
     if (!this.running) return;
 
     const next = this.snake.getNextHead();
 
-    // vägg
-    if (this.isWallCollision(next)) {
+    // 🚧 Vägg eller svans = GAME OVER
+    if (this.isWallCollision(next) || this.isBodyCollision(next)) {
+      console.warn("[Game] crash");
       this.running = false;
+      this.win = false;
+      this.reason = "crash";
       return;
     }
 
-    // kropp (tillåt ej att gå in i kroppen)
-    if (this.isBodyCollision(next)) {
-      this.running = false;
-      return;
-    }
-
-    // flytta först när det är säkert
+    // ✅ Säkert att flytta
     this.snake.move();
 
     if (this.mode === "classic") this.checkFood();
     if (this.mode === "reverse") this.checkHouse();
   }
 
+  /* ================= COLLISIONS ================= */
+
   isWallCollision(p) {
-    return p.x < 0 || p.y < 0 || p.x >= this.size || p.y >= this.size;
+    return (
+      p.x < 0 ||
+      p.y < 0 ||
+      p.x >= this.size ||
+      p.y >= this.size
+    );
   }
 
   isBodyCollision(p) {
-    // tillåt inte att gå in i kroppen (men ignorera sista segmentet som flyttar)
     const bodyWithoutTail =
-      this.snake.body.length > 1 ? this.snake.body.slice(0, -1) : this.snake.body;
+      this.snake.body.length > 1
+        ? this.snake.body.slice(0, -1)
+        : this.snake.body;
 
-    return bodyWithoutTail.some(seg => seg.x === p.x && seg.y === p.y);
+    return bodyWithoutTail.some(
+      seg => seg.x === p.x && seg.y === p.y
+    );
   }
 
-  /* ---------- CLASSIC ---------- */
+  /* ================= CLASSIC ================= */
 
   checkFood() {
     const head = this.snake.body[0];
@@ -83,20 +96,25 @@ export class Game {
     if (head.x === this.food.x && head.y === this.food.y) {
       this.snake.grow();
       this.packages++;
-
-      const BASE_SCORE = 5;
       this.score += BASE_SCORE * this.level;
 
-      // ny mat på tom ruta
-      this.food = spawnFreePosition(this, false);
-
       console.log(
-        `[Classic] ate food → packages=${this.packages}, +${BASE_SCORE * this.level} score`
+        `[Classic] +${BASE_SCORE * this.level} score (packages=${this.packages})`
       );
+
+      // 🎉 CLASSIC WIN
+      if (this.packages >= CLASSIC_MAX_PACKAGES) {
+        this.running = false;
+        this.win = true;
+        this.reason = "classic-complete";
+        return;
+      }
+
+      this.food = spawnFreePosition(this, false);
     }
   }
 
-  /* ---------- REVERSE ---------- */
+  /* ================= REVERSE ================= */
 
   checkHouse() {
     const head = this.snake.body[0];
@@ -106,30 +124,28 @@ export class Game {
     }
 
     if (head.x === this.house.x && head.y === this.house.y) {
-      // ta bort paket (svansen)
       this.snake.removeLastPackage();
       this.packages--;
-
-      const BASE_SCORE = 5;
       this.score += BASE_SCORE * this.level;
 
       console.log(
-        `[Reverse] reached house → packages=${this.packages}, +${BASE_SCORE * this.level} score`
+        `[Reverse] house reached → packages=${this.packages}, +${BASE_SCORE * this.level}`
       );
 
+      // 🎉 REVERSE WIN
       if (this.packages <= 0) {
         this.running = false;
         this.win = true;
+        this.reason = "reverse-complete";
         return;
       }
 
-      // nya hus: nära i början, friare senare
       const near = this.packages > 10;
       this.house = spawnFreePosition(this, near);
     }
   }
 
-  /* ---------- TIME ---------- */
+  /* ================= TIME ================= */
 
   getElapsedTime() {
     const s = Math.floor((Date.now() - this.startTime) / 1000);

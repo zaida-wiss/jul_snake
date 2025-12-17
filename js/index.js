@@ -32,11 +32,14 @@ function gameLoop() {
   const game = gameRef.current;
   if (!game) return;
 
-  if (!game.running) {
-    console.warn("[Index] GAME OVER");
+if (!game.running) {
+  if (game.win) {
+    showWin(game);
+  } else {
     showGameOver(game);
-    return;
   }
+  return;
+}
 
   game.update();
   renderGame(cells, game, BOARD_SIZE);
@@ -78,7 +81,14 @@ function changeLevel(level) {
 
 initTouchControls(direction => {
   const game = gameRef.current;
-  if (!game || !game.running) return;
+if (!game.running) {
+  if (game.win) {
+    showWin(game);
+  } else {
+    showGameOver(game);
+  }
+  return;
+}
 
   console.log("[Touch] direction:", direction);
   game.snake.setDirection(direction);
