@@ -1,12 +1,20 @@
 import { Game } from "./core/game.js";
 import { createGrid, renderGame } from "./ui/renderer.js";
 import { updateHUD, showGameOver, hideGameOver } from "./ui/hud.js";
-import { initControls } from "./input/controls.js";
+import { initTouchControls } from "./input/controls.js";
 
 /* ---------- CONFIG ---------- */
 
 const board = document.getElementById("game-board");
 const BOARD_SIZE = 15;
+const cells = createGrid(board, BOARD_SIZE);
+
+// 🔑 ENDA källan till spelet
+const gameRef = { current: null };
+
+let loopId = null;
+let currentLevel = 1;
+let currentMode = "classic";
 
 const LEVEL_SPEED = {
   1: 900,
@@ -16,17 +24,7 @@ const LEVEL_SPEED = {
   5: 120,
 };
 
-/* ---------- STATE ---------- */
-
-let loopId = null;
-let currentLevel = 1;
-let currentMode = "classic";
-
-// gameRef används av controls.js
-const gameRef = { current: null };
-
-// grid
-const cells = createGrid(board, BOARD_SIZE);
+console.log("[Index] ready");
 
 /* ---------- GAME LOOP ---------- */
 
@@ -47,42 +45,55 @@ function gameLoop() {
   loopId = setTimeout(gameLoop, LEVEL_SPEED[currentLevel]);
 }
 
-/* ---------- START / RESTART ---------- */
+/* ---------- START / MODE ---------- */
 
 function startGame(mode = currentMode) {
   console.log("[Index] startGame:", mode);
 
   hideGameOver();
-
   currentMode = mode;
 
   if (loopId) clearTimeout(loopId);
 
   gameRef.current = new Game(BOARD_SIZE, mode, currentLevel);
 
-
-  renderGame(cells, gameRef.current, BOARD_SIZE);
-  updateHUD(gameRef.current);
-
   gameLoop();
 }
 
-/* ---------- LEVEL CHANGE ---------- */
+/* ---------- LEVEL ---------- */
 
 function changeLevel(level) {
   currentLevel = level;
   console.log("[Index] changeLevel:", level);
 
   if (gameRef.current) {
-    gameRef.current.level = level; // 🔑 KRITISKT
+    gameRef.current.level = level;
   }
 
   if (loopId) clearTimeout(loopId);
   gameLoop();
 }
 
-/* ---------- INIT ---------- */
+/* ---------- TOUCH CONTROLS ---------- */
 
-initControls(gameRef, startGame, changeLevel);
+initTouchControls(direction => {
+  const game = gameRef.current;
+  if (!game || !game.running) return;
 
-console.log("[Index] ready");
+  console.log("[Touch] direction:", direction);
+  game.snake.setDirection(direction);
+});
+
+/* ---------- UI EVENTS ---------- */
+
+document.querySelectorAll(".level-select button").forEach(btn => {
+  btn.onclick = () => changeLevel(Number(btn.dataset.level));
+});
+
+document.getElementById("start-btn").onclick = () => startGame("classic");
+document.getElementById("reverse-btn").onclick = () => startGame("reverse");
+
+document.getElementById("restart-btn").onclick = () => {
+  console.log("[UI] restart");
+  startGame(currentMode);
+};
