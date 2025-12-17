@@ -15,9 +15,12 @@ export function initTouchControls(
   let lastY = 0;
   let lastDirection = null;
 
-  const DEADZONE = 8; // px – känslighet
+  const DEADZONE = 8; // px – justera känslighet här
 
-  /* ---------- POINTER DOWN ---------- */
+  /* ===========================
+     POINTER EVENTS (primary)
+     =========================== */
+
   element.addEventListener(
     "pointerdown",
     e => {
@@ -39,7 +42,6 @@ export function initTouchControls(
     { passive: false }
   );
 
-  /* ---------- POINTER MOVE ---------- */
   element.addEventListener(
     "pointermove",
     e => {
@@ -72,8 +74,7 @@ export function initTouchControls(
     { passive: false }
   );
 
-  /* ---------- POINTER UP / CANCEL ---------- */
-  const endTouch = e => {
+  const endPointer = e => {
     if (!active) return;
 
     e.preventDefault();
@@ -87,6 +88,21 @@ export function initTouchControls(
     console.log("[Touch] end");
   };
 
-  element.addEventListener("pointerup", endTouch, { passive: false });
-  element.addEventListener("pointercancel", endTouch, { passive: false });
+  element.addEventListener("pointerup", endPointer, { passive: false });
+  element.addEventListener("pointercancel", endPointer, { passive: false });
+
+  /* ===========================
+     GLOBAL SCROLL BLOCKER
+     =========================== */
+
+  // Förhindrar scroll/zoom UTANFÖR game-board
+  document.addEventListener(
+    "touchmove",
+    e => {
+      if (!element.contains(e.target)) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
 }

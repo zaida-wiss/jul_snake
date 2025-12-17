@@ -9,9 +9,9 @@ html, body {
   height: 100%;
   margin: 0;
   padding: 0;
-
-  overscroll-behavior: none;  /* stoppar bounce */
-  touch-action: none;         /* stoppar touch-scroll & zoom */
+  overflow: hidden;           /* 🔒 stoppar scroll */
+  touch-action: none;         /* 🔑 stoppar ALLA touch-gester */
+  overscroll-behavior: none;  /* 🔒 stoppar bounce */
 }
 
 body {
