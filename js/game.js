@@ -70,7 +70,7 @@ export class Game {
       this.snake.grow();
       this.packages++;
 
-      const BASE_SCORE = 10;
+      const BASE_SCORE = 5;
       this.score += BASE_SCORE * this.level;
 
       console.log(`[Classic] +${BASE_SCORE * this.level} (level ${this.level})`);
