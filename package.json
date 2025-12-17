@@ -1,0 +1,27 @@
+{
+  "name": "jul_snake",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "jest"
+  },
+  "scripts": {
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js"
+  },
+  "repository": {
+    "type": "module",
+    "url": "git+https://github.com/zaida-wiss/jul_snake.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/zaida-wiss/jul_snake/issues"
+  },
+  "homepage": "https://github.com/zaida-wiss/jul_snake#readme",
+  "devDependencies": {
+    "jest": "^30.2.0"
+  }
+}
