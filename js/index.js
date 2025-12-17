@@ -7,6 +7,8 @@ let game = null;
 let loopId = null;
 let currentLevel = 1;
 
+let currentMode = "classic"; // 🔑
+
 const LEVELS = {
   1: 900,
   2: 700,
@@ -52,12 +54,19 @@ function loop() {
 
 /* ---------- START / LEVEL ---------- */
 
-function startGame(mode = "classic") {
-  console.log("[Index] start game:", mode);
+function startGame(mode = currentMode) {
+  console.log("[Index] startGame, mode:", mode);
+
+  // 🔑 DÖLJ GAME OVER OVERLAY ALLTID
+  const overlay = document.getElementById("game-over");
+  overlay.classList.add("hidden");
+
+  currentMode = mode;
 
   if (loopId) clearTimeout(loopId);
+
   game = new Game(size, mode);
-  document.getElementById("game-over").classList.add("hidden");
+
   loop();
 }
 
@@ -120,4 +129,7 @@ document.querySelectorAll(".level-select button").forEach(btn => {
 
 document.getElementById("start-btn").onclick = () => startGame("classic");
 document.getElementById("reverse-btn").onclick = () => startGame("reverse");
-document.getElementById("restart-btn").onclick = () => startGame(game.mode);
+document.getElementById("restart-btn").onclick = () => {
+  console.log("[UI] Restart clicked");
+  startGame(game ? game.mode : currentMode);
+};
