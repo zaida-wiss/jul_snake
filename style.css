@@ -184,19 +184,10 @@ button {
   background: #1f3b52;
   color: #fff;
 }
-
-.controls button {
-  line-height: 1;
+.level-select {
+  gap: 10px;
 }
 
-.controls button:active {
-  background: #355f7a;
-}
-#start-btn {
-  height: 30px;
-  font-size: 16px;;
-  background-color: red;
-}
 /* ===============================
 GAME OVER OVERLAY
 ================================ */
