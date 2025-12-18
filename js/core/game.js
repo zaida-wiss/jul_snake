@@ -25,6 +25,7 @@ export class Game {
 
     this.reverseActive = false;
     this.reverseDirection = null;
+    this.shrinkPending = 0;
 
     if (this.mode === "reverse") {
       this.initReverseStart();
@@ -117,67 +118,48 @@ export class Game {
      REVERSE – UPDATE
      ===================== */
 
-  updateReverse() {
-    if (!this.reverseDirection) return;
+updateReverse() {
+  const next = this.snake.getNextHead();
 
-    const head = this.snake.body[0];
+  // 🧱 Väggkollision (SAME AS CLASSIC)
+  if (
+    next.x < 0 ||
+    next.y < 0 ||
+    next.x >= this.size ||
+    next.y >= this.size
+  ) {
+    this.endGame("wall-crash", false);
+    return;
+  }
 
-    const dirMap = {
-      UP:    { x: 0, y: -1 },
-      DOWN:  { x: 0, y: 1 },
-      LEFT:  { x: -1, y: 0 },
-      RIGHT: { x: 1, y: 0 },
-    };
+  // 📦 Kroppskollision (SAME AS CLASSIC)
+  if (this.snake.occupies(next)) {
+    this.endGame("self-crash", false);
+    return;
+  }
 
-    const move = dirMap[this.reverseDirection];
-    const target = {
-      x: head.x + move.x,
-      y: head.y + move.y,
-    };
+  // ▶️ Flytta (SAME AS CLASSIC)
+  this.snake.move();
 
-    if (
-      target.x < 0 ||
-      target.y < 0 ||
-      target.x >= this.size ||
-      target.y >= this.size
-    ) {
-      this.endGame("wall-crash", false);
-      return;
-    }
+  const head = this.snake.body[0];
 
-    if (target.x !== this.emptyCell.x || target.y !== this.emptyCell.y) {
-      this.endGame("self-crash", false);
-      return;
-    }
+  // 🏠 Äter hus → krymp bakifrån
+  if (
+    this.house &&
+    head.x === this.house.x &&
+    head.y === this.house.y
+  ) {
+    this.snake.removeLastPackage();
+    this.packages--;
+    this.score += BASE_SCORE * this.level;
 
-    // 🏠 Träffar huset
-if (this.house &&
-    target.x === this.house.x &&
-    target.y === this.house.y) {
-
-  // 1️⃣ Ta bort ett paket (svansen)
-  const removed = this.snake.body.pop();
-
-  // 2️⃣ Flytta in i huset (som är tom cell i praktiken)
-  this.snake.body.unshift({ ...this.house });
-
-  // 3️⃣ Den borttagna svansen blir ny tom ruta
-  this.emptyCell = { ...removed };
-
-  // 4️⃣ Ta bort huset och spawna nytt
-  this.house = null;
-  this.spawnHouse();
-
-  return;
+    this.house = null;
+    this.spawnHouse();
+  }
 }
 
-    const tail = this.snake.body[this.snake.body.length - 1];
 
-    this.snake.body.unshift({ ...this.emptyCell });
-    this.snake.body.pop();
 
-    this.emptyCell = { ...tail };
-  }
 
   /* =====================
      HOUSE HELPERS
@@ -202,13 +184,18 @@ if (this.house &&
     return empty;
   }
 
-  spawnHouse() {
-    const emptyCells = this.getAllEmptyCells();
-    if (emptyCells.length === 0) return;
+spawnHouse() {
+  // I reverse är enda tomrutan emptyCell (i början),
+  // och senare kan fler tomrutor uppstå när tåget krymper.
+  const emptyCells = this.getAllEmptyCells();
 
-    const index = Math.floor(Math.random() * emptyCells.length);
-    this.house = emptyCells[index];
-  }
+  if (emptyCells.length === 0) return;
+
+  const index = Math.floor(Math.random() * emptyCells.length);
+  this.house = emptyCells[index];
+}
+
+
 
   /* =====================
      AVSLUT

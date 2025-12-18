@@ -1,110 +1,63 @@
-// js/input/controls.js
-// Kontinuerlig touch-/pointerstyrning (håll & svep)
+// input/controls.js
+// =====================================
+// Touch-input
+// - Anropar callback(direction)
+// - Index.js avgör vad som händer sen
+// =====================================
 
-export function initTouchControls(
-  onDirection,
-  element = document.getElementById("game-board")
-) {
-  if (!element) {
-    console.warn("[Touch] game-board not found");
+let startX = null;
+let startY = null;
+
+const SWIPE_THRESHOLD = 20;
+
+export function initTouchControls(onDirection) {
+  const canvas = document.getElementById("game-board");
+
+  if (!canvas) {
+    console.warn("[Controls] game-board not found");
     return;
   }
 
-  let active = false;
-  let lastX = 0;
-  let lastY = 0;
-  let lastDirection = null;
-
-  const DEADZONE = 8; // px – justera känslighet här
-
-  /* ===========================
-     POINTER EVENTS (primary)
-     =========================== */
-
-  element.addEventListener(
-    "pointerdown",
-    e => {
-      if (e.pointerType === "mouse") return;
-
-      e.preventDefault();
-
-      active = true;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      lastDirection = null;
-
-      try {
-        element.setPointerCapture(e.pointerId);
-      } catch {}
-
-      console.log("[Touch] start", lastX, lastY);
+  canvas.addEventListener(
+    "touchstart",
+    (e) => {
+      const touch = e.touches[0];
+      startX = touch.clientX;
+      startY = touch.clientY;
     },
-    { passive: false }
+    { passive: true }
   );
 
-  element.addEventListener(
-    "pointermove",
-    e => {
-      if (!active || e.pointerType === "mouse") return;
+  canvas.addEventListener(
+    "touchend",
+    (e) => {
+      if (startX === null || startY === null) return;
 
-      e.preventDefault();
+      const touch = e.changedTouches[0];
+      const dx = touch.clientX - startX;
+      const dy = touch.clientY - startY;
 
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
+      startX = null;
+      startY = null;
 
-      if (Math.abs(dx) < DEADZONE && Math.abs(dy) < DEADZONE) return;
+      if (
+        Math.abs(dx) < SWIPE_THRESHOLD &&
+        Math.abs(dy) < SWIPE_THRESHOLD
+      ) {
+        return;
+      }
 
       let direction;
+
       if (Math.abs(dx) > Math.abs(dy)) {
         direction = dx > 0 ? "RIGHT" : "LEFT";
       } else {
         direction = dy > 0 ? "DOWN" : "UP";
       }
 
-      if (direction !== lastDirection) {
-        console.log("[Touch] direction:", direction);
-        onDirection(direction);
-        lastDirection = direction;
-      }
-
-      // 🔑 gör att man kan fortsätta svepa utan att släppa
-      lastX = e.clientX;
-      lastY = e.clientY;
+      // 🔑 Skicka riktningen till index.js
+      onDirection(direction);
     },
-    { passive: false }
+    { passive: true }
   );
-
-  const endPointer = e => {
-    if (!active) return;
-
-    e.preventDefault();
-    active = false;
-    lastDirection = null;
-
-    try {
-      element.releasePointerCapture(e.pointerId);
-    } catch {}
-
-    console.log("[Touch] end");
-  };
-
-  element.addEventListener("pointerup", endPointer, { passive: false });
-  element.addEventListener("pointercancel", endPointer, { passive: false });
-
-  /* ===========================
-     GLOBAL SCROLL BLOCKER
-     =========================== */
-
-  // Förhindrar scroll/zoom UTANFÖR game-board
-  document.addEventListener(
-    "touchmove",
-    e => {
-      if (!element.contains(e.target)) {
-        e.preventDefault();
-      }
-    },
-    { passive: false }
-  );
-
 }
-
