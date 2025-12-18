@@ -41,7 +41,8 @@ body {
     auto;   /* controls */
 
   justify-items: center;
-  overflow-x: hidden;      /* sista skyddsnätet */
+  overflow-x: hidden;
+    /* sista skyddsnätet */
 }
 #touch-zone {
   touch-action: none;
@@ -64,10 +65,12 @@ h1 {
 .game-area {
   flex: 1;
   display: flex;
+  padding: 0;
   justify-content: center;
   align-items: center;
-  width: 100%;  /* Se till att spelområdet alltid är 100% brett */
-  max-width: 360px; /* Håller spelplanen innanför .page */
+  width: 100%;
+  height: 360px;; /* Se till att spelområdet alltid är 100% brett */
+  /* max-width: 360px; Håller spelplanen innanför .page */
 }
 
 #game-board {
@@ -148,6 +151,7 @@ UI PANEL
 .ui-panel {
   display:flex;
   padding:0;
+  margin: 0;
 
 }
 
@@ -155,7 +159,7 @@ UI PANEL
   display: grid;
   gap: 0 0.5rem;
   padding: 0;
-  height: 40px;
+  height: 60px;
 }
 
 .hud {
@@ -166,26 +170,31 @@ UI PANEL
   align-items: center;
   font-size: 1.6rem;
   justify-content: center;
-  height:40px;
+  align-content: baseline;
+  height:60px;
+}
+#selectMode {
+  margin-top: -80px;;
+background-color: black;
+height: 60px;
+width: 100%;
+display: flex;
+padding:10px;
+justify-content: center;
+align-items: center;
+
 }
 #mode-buttons {
   display: flex;
   gap: 10px;
   justify-content: center;
+  height: 40px;
 }
 
 
 /* ===============================
 CONTROLS (MOBILE)
 ================================ */
-
-.controls {
-  display: grid;
-  grid-template-columns: repeat(3, 100px);
-  grid-template-rows: repeat(3, 60px);
-  gap: 8px;
-  margin-top: 5px;
-}
 
 button {
   max-width: 100%;
@@ -277,8 +286,5 @@ GAME OVER OVERLAY
     height: 24px;
   }
 
-  .controls {
-    display: none;
-  }
 }
 
