@@ -18,15 +18,13 @@ export class Game {
 
     this.score = 0;
     this.packages = 0;
+    this.housesLeft = 0;
+
     this.startTime = Date.now();
     this.startDelayUntil = Date.now() + 2000; // 2 sek startpaus
 
     this.food = null;
     this.house = null;
-
-    this.reverseActive = false;
-    this.reverseDirection = null;
-    this.shrinkPending = 0;
 
     if (this.mode === "reverse") {
       this.initReverseStart();
@@ -40,39 +38,14 @@ export class Game {
      ===================== */
 
   update() {
-
-    // ⏳ Startfördröjning (gäller alla lägen)
-if (Date.now() < this.startDelayUntil) {
-  return;
-}
-
+    // ⏳ Startfördröjning
+    if (Date.now() < this.startDelayUntil) return;
     if (!this.running) return;
 
-   if (this.mode === "classic") {
-  const next = this.snake.getNextHead();
-
-  // 🧱 Väggkollision
-  if (
-    next.x < 0 ||
-    next.y < 0 ||
-    next.x >= this.size ||
-    next.y >= this.size
-  ) {
-    this.endGame("wall-crash", false);
-    return;
-  }
-
-  // 📦 KROPPKOLLISION (KRITISK)
-  if (this.snake.occupies(next)) {
-    this.endGame("self-crash", false);
-    return;
-  }
-
-  // ▶️ Flytta
-  this.snake.move();
-  this.updateClassic();
-  return;
-}
+    if (this.mode === "classic") {
+      this.updateClassicFrame();
+      return;
+    }
 
     if (this.mode === "reverse") {
       this.updateReverse();
@@ -80,25 +53,50 @@ if (Date.now() < this.startDelayUntil) {
   }
 
   /* =====================
-     CLASSIC
+     CLASSIC MODE
      ===================== */
 
   initClassic() {
     const c = Math.floor(this.size / 2);
     this.snake = new Snake(c, c);
     this.food = spawnFreePosition(this, false);
+
+    this.housesLeft = 253;
   }
 
-  updateClassic() {
-    const head = this.snake.body[0];
-    if (!this.food) return;
+  updateClassicFrame() {
+    const next = this.snake.getNextHead();
 
-    if (head.x === this.food.x && head.y === this.food.y) {
+    // 🧱 Vägg
+    if (
+      next.x < 0 ||
+      next.y < 0 ||
+      next.x >= this.size ||
+      next.y >= this.size
+    ) {
+      this.endGame("wall-crash", false);
+      return;
+    }
+
+    // 📦 Kropp
+    if (this.snake.occupies(next)) {
+      this.endGame("self-crash", false);
+      return;
+    }
+
+    // ▶️ Flytta
+    this.snake.move();
+
+    const head = this.snake.body[0];
+
+    // 🍬 Äter paket
+    if (this.food && head.x === this.food.x && head.y === this.food.y) {
       this.snake.grow();
       this.packages++;
+      this.housesLeft--;
       this.score += BASE_SCORE * this.level;
 
-      if (this.packages >= CLASSIC_MAX_PACKAGES) {
+      if (this.housesLeft <= 0) {
         this.endGame("classic-complete", true);
         return;
       }
@@ -108,72 +106,79 @@ if (Date.now() < this.startDelayUntil) {
   }
 
   /* =====================
-     REVERSE – START
+     REVERSE MODE – START
      ===================== */
 
-  initReverseStart() {
-    this.snake = new Snake(0, 0);
+initReverseStart() {
+  this.snake = new Snake(0, 0);
 
-    // Fyll tåget (1–255)
-    this.snake.body = PATH.map(cell => ({ ...cell }));
-    this.packages = this.snake.body.length - 2;
+  this.snake.body = PATH.map(cell => ({ ...cell }));
 
-    // Tom ruta (256)
-    this.emptyCell = { x: 3, y: 0 };
+  this.packages = this.snake.body.length - 2; // ← kvar i tåget
+  this.housesLeft = 0;                         // ← uppätna hus
 
-    this.reverseActive = false;
-    this.reverseDirection = null;
+  this.reverseActive = false;
+  this.reverseDirection = null;
 
-    // 🏠 Spawn house korrekt
-    this.spawnHouse();
-  }
-
-  /* =====================
-     REVERSE – UPDATE
-     ===================== */
-
-updateReverse() {
-  const next = this.snake.getNextHead();
-
-  // 🧱 Väggkollision (SAME AS CLASSIC)
-  if (
-    next.x < 0 ||
-    next.y < 0 ||
-    next.x >= this.size ||
-    next.y >= this.size
-  ) {
-    this.endGame("wall-crash", false);
-    return;
-  }
-
-  // 📦 Kroppskollision (SAME AS CLASSIC)
-  if (this.snake.occupies(next)) {
-    this.endGame("self-crash", false);
-    return;
-  }
-
-  // ▶️ Flytta (SAME AS CLASSIC)
-  this.snake.move();
-
-  const head = this.snake.body[0];
-
-  // 🏠 Äter hus → krymp bakifrån
-  if (
-    this.house &&
-    head.x === this.house.x &&
-    head.y === this.house.y
-  ) {
-    this.snake.removeLastPackage();
-    this.packages--;
-    this.score += BASE_SCORE * this.level;
-
-    this.house = null;
-    this.spawnHouse();
-  }
+  this.spawnHouse();
 }
 
 
+  /* =====================
+     REVERSE MODE – UPDATE
+     ===================== */
 
+  updateReverse() {
+    const next = this.snake.getNextHead();
+
+    // 🧱 Vägg
+    if (
+      next.x < 0 ||
+      next.y < 0 ||
+      next.x >= this.size ||
+      next.y >= this.size
+    ) {
+      this.endGame("wall-crash", false);
+      return;
+    }
+
+    const hitsHouse =
+      this.house &&
+      next.x === this.house.x &&
+      next.y === this.house.y;
+
+    const hitsBody = this.snake.occupies(next);
+
+    // 📦 Kropp (MEN INTE hus!)
+    if (hitsBody && !hitsHouse) {
+      this.endGame("self-crash", false);
+      return;
+    }
+
+    // ▶️ Flytta (samma som classic)
+    this.snake.move();
+
+    const head = this.snake.body[0];
+
+    // 🏠 Äter hus
+if (this.house && head.x === this.house.x && head.y === this.house.y) {
+  this.snake.removeLastPackage(); // tåget blir kortare
+
+  this.packages--;    // 🔑 DETTA avgör när spelet är klart
+  this.housesLeft++;  // 🔑 detta är "mat insamlad" i reverse
+
+  this.score += BASE_SCORE * this.level;
+
+  // ✅ RÄTT WIN-CONDITION
+  if (this.packages <= 0) {
+    this.endGame("reverse-complete", true);
+    return;
+  }
+
+  this.house = null;
+  this.spawnHouse();
+}
+  }
 
   /* =====================
      HOUSE HELPERS
@@ -198,18 +203,13 @@ updateReverse() {
     return empty;
   }
 
-spawnHouse() {
-  // I reverse är enda tomrutan emptyCell (i början),
-  // och senare kan fler tomrutor uppstå när tåget krymper.
-  const emptyCells = this.getAllEmptyCells();
+  spawnHouse() {
+    const emptyCells = this.getAllEmptyCells();
+    if (emptyCells.length === 0) return;
 
-  if (emptyCells.length === 0) return;
-
-  const index = Math.floor(Math.random() * emptyCells.length);
-  this.house = emptyCells[index];
-}
-
-
+    const index = Math.floor(Math.random() * emptyCells.length);
+    this.house = emptyCells[index];
+  }
 
   /* =====================
      AVSLUT
