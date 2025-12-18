@@ -105,4 +105,6 @@ export function initTouchControls(
     },
     { passive: false }
   );
+
 }
+

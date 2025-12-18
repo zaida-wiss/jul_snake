@@ -83,16 +83,21 @@ function changeLevel(level) {
 
 initTouchControls(direction => {
   const game = gameRef.current;
-  if (!game) return;
+  if (!game || !game.running) return;
 
-  if (!game.running) {
-    if (game.win) showWin(game);
-    else showGameOver(game);
+  // Reverse: touch = styrning
+  if (game.mode === "reverse") {
+    game.reverseActive = true;
+    game.reverseDirection = direction;
     return;
   }
 
-  game.snake.setDirection(direction);
+  // Classic: touch = riktning
+  if (game.mode === "classic") {
+    game.snake.setDirection(direction);
+  }
 });
+
 
 /* ---------- UI EVENTS ---------- */
 

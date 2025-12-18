@@ -31,8 +31,8 @@ export class Game {
     this.food = null;
     this.house = null;
 
-    // används endast i reverse
-    this.pathIndex = null;
+    // 🔑 Reverse-flagga
+    this.reverseActive = false;
 
     if (this.mode === "reverse") {
       this.initReverseStart();
@@ -48,25 +48,42 @@ export class Game {
   update() {
     if (!this.running) return;
 
+    /* ---------- CLASSIC ---------- */
     if (this.mode === "classic") {
+      const next = this.snake.getNextHead();
+
+      // 🧱 Väggkollision
+      if (
+        next.x < 0 ||
+        next.y < 0 ||
+        next.x >= this.size ||
+        next.y >= this.size
+      ) {
+        this.endGame("wall-crash", false);
+        return;
+      }
+
       this.snake.move();
       this.updateClassic();
       return;
     }
 
-if (this.mode === "reverse") {
-  // 🔒 Reverse får INTE röra sig när hela PATH är fylld
-  // Rörelse aktiveras först när ett paket ska bort
-  return;
-}
+    /* ---------- REVERSE ---------- */
+    if (this.mode === "reverse") {
+      if (!this.reverseActive) return;
+
+      this.updateReverse();
+      return;
+    }
   }
 
   /* =====================
-     CLASSIC MODE (ORÖRD)
+     CLASSIC MODE
      ===================== */
 
   initClassic() {
-    this.snake = new Snake(0, 2);
+    const c = Math.floor(this.size / 2);
+    this.snake = new Snake(c, c);
     this.food = spawnFreePosition(this, false);
   }
 
@@ -89,73 +106,64 @@ if (this.mode === "reverse") {
   }
 
   /* =====================
-     REVERSE MODE – START
+     REVERSE – START
      ===================== */
 
   initReverseStart() {
-    this.snake = new Snake(0, 0);
+  this.snake = new Snake(0, 0);
 
-    // 🧭 PATH-definition:
-    // PATH[0] = 1 (ren)
-    // PATH[1] = 2 (tomte)
-    // PATH[2..] = paket
+  // Tåget fyller PATH (1–255)
+  this.snake.body = PATH.map(cell => ({ ...cell }));
 
-    this.snake.body = PATH.map(cell => ({ ...cell }));
+  this.packages = this.snake.body.length - 2;
 
-    this.packages = this.snake.body.length - 2;
+  // 🔑 Tom ruta = ruta 256 (enligt din karta)
+  // Denna ska vara EXAKT den cellen du valt (t.ex. x=3,y=0)
+  this.emptyCell = { x: 3, y: 0 };
 
-    // Startindex = sista paketet (högsta talet)
-    this.pathIndex = PATH.length - 1;
-
-    // Inget hus ännu
-    this.house = null;
-  }
+  this.reverseActive = false;
+}
 
   /* =====================
-     REVERSE MODE – UPDATE
+     REVERSE – UPDATE
      ===================== */
 
-  updateReverse() {
-    const nextIndex = this.pathIndex - 1;
+updateReverse() {
+  if (!this.reverseDirection) return;
 
-    // Slut på path
-    if (nextIndex < 0) {
-      this.endGame("reverse-complete", true);
-      return;
-    }
+  const head = this.snake.body[0];
 
-    const nextCell = PATH[nextIndex];
-    if (!nextCell) {
-      this.endGame("no-more-path", false);
-      return;
-    }
+  const dirMap = {
+    UP:    { x: 0, y: -1 },
+    DOWN:  { x: 0, y: 1 },
+    LEFT:  { x: -1, y: 0 },
+    RIGHT: { x: 1, y: 0 },
+  };
 
-    // 🔥 KOLLISION MED EGEN KROPP
-    if (this.snake.occupies(nextCell)) {
-      this.endGame("self-crash", false);
-      return;
-    }
+  const move = dirMap[this.reverseDirection];
+  const target = {
+    x: head.x + move.x,
+    y: head.y + move.y,
+  };
 
-    // 🔥 KOLLISION MED VÄGG (säkerhet)
-    if (
-      nextCell.x < 0 ||
-      nextCell.y < 0 ||
-      nextCell.x >= this.size ||
-      nextCell.y >= this.size
-    ) {
-      this.endGame("wall-crash", false);
-      return;
-    }
-
-    // Flytta huvudet längs PATH
-    this.snake.body.unshift({ ...nextCell });
-    this.snake.body.pop();
-
-    this.pathIndex = nextIndex;
+  // ❌ Tomrutan ligger inte i den riktningen → stanna
+  if (target.x !== this.emptyCell.x || target.y !== this.emptyCell.y) {
+    return;
   }
 
+  // ✔️ Flytta in i tomrutan
+  const tail = this.snake.body[this.snake.body.length - 1];
+
+  this.snake.body.unshift({ ...this.emptyCell });
+  this.snake.body.pop();
+
+  this.emptyCell = { ...tail };
+}
+
+
+
   /* =====================
-     AVSLUT / HUD
+     AVSLUT
      ===================== */
 
   endGame(reason, win) {
@@ -168,7 +176,6 @@ if (this.mode === "reverse") {
     const s = Math.floor((Date.now() - this.startTime) / 1000);
     const min = Math.floor(s / 60);
     const sec = s % 60;
-
     return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   }
 }
