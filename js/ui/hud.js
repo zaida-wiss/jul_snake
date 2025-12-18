@@ -1,17 +1,8 @@
-// ui/hud.js
-// =====================================
-// HUD – ansvarar ENDAST för visning
-// Läser state från game, ingen logik
-// =====================================
-
 export function updateHUD(game) {
   document.getElementById("score").textContent = game.score;
-
-  // Statistik
   document.getElementById("packages").textContent = game.packages;
 
-  // 🔑 VIKTIGT:
-  // "houses" i UI = housesLeft i spelet (båda moden)
+  // 🔑 RÄTT KÄLLA: housesLeft (inte game.houses)
   document.getElementById("houses").textContent = game.housesLeft;
 
   document.getElementById("time").textContent = game.getElapsedTime();
@@ -20,10 +11,7 @@ export function updateHUD(game) {
 export function showGameOver(game) {
   document.getElementById("final-score").textContent = game.score;
   document.getElementById("final-packages").textContent = game.packages;
-
-  // 🔑 Samma mapping här
   document.getElementById("final-houses").textContent = game.housesLeft;
-
   document.getElementById("final-time").textContent = game.getElapsedTime();
 
   document
@@ -40,10 +28,7 @@ export function hideGameOver() {
 export function showWin(game) {
   document.getElementById("final-score").textContent = game.score;
   document.getElementById("final-packages").textContent = game.packages;
-
-  // 🔑 Samma mapping även vid vinst
   document.getElementById("final-houses").textContent = game.housesLeft;
-
   document.getElementById("final-time").textContent = game.getElapsedTime();
 
   const title = document.querySelector("#game-over h2");
@@ -51,9 +36,9 @@ export function showWin(game) {
     if (game.reason === "classic-complete") {
       title.textContent = "🏆 Alla paket insamlade!";
     } else if (game.reason === "reverse-complete") {
-      title.textContent = "🎉 Alla hus insamlade!";
+      title.textContent = "🎉 Alla hus levererade!";
     } else {
-      title.textContent = "🎅 Spelet är slut!";
+      title.textContent = "💥 Färden tog slut!";
     }
   }
 
