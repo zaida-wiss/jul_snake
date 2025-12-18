@@ -2,11 +2,25 @@
 import { Snake } from "../entities/snake.js";
 import { spawnFreePosition } from "../utils/spawn.js";
 
-const CLASSIC_MAX_PACKAGES = 223;
+/* ======================================================
+   1. SPELLÄGEN & KONSTANTER
+   ====================================================== */
+
+const MODES = {
+  CLASSIC: "classic",
+  REVERSE: "reverse",
+};
+
 const BASE_SCORE = 5;
+const CLASSIC_MAX_PACKAGES = 223;
+const REVERSE_START_PACKAGES = 102;
+
+/* ======================================================
+   2. GEMENSAM SPELMOTOR (GÄLLER ALLA LÄGEN)
+   ====================================================== */
 
 export class Game {
-  constructor(size, mode = "classic", level = 1) {
+  constructor(size, mode = MODES.CLASSIC, level = 1) {
     this.size = size;
     this.mode = mode;
     this.level = level;
@@ -15,25 +29,20 @@ export class Game {
     this.win = false;
     this.reason = null;
 
-    this.snake = new Snake(size);
+    // 🦌 Startposition enligt din bana
+    this.snake = new Snake(2, 0);
 
     this.score = 0;
     this.packages = 0;
     this.startTime = Date.now();
 
-    this.food = null;
-    this.house = null;
+    // mode-specifika objekt
+    this.food = null;   // classic
+    this.house = null;  // reverse
 
-    if (this.mode === "reverse") {
-      const START_PACKAGES = 102;
-      this.snake.buildReverseTrain(START_PACKAGES);
-      this.packages = START_PACKAGES;
-
-      this.house = spawnFreePosition(this, false);  👈 nära huvudet: av/på
-    } else {
-      // classic
-      this.food = spawnFreePosition(this, false);
-    }
+    // 🔀 Initiera valt läge
+    if (this.mode === MODES.CLASSIC) this.initClassic();
+    if (this.mode === MODES.REVERSE) this.initReverse();
 
     console.log("[Game] started", {
       mode: this.mode,
@@ -42,30 +51,28 @@ export class Game {
     });
   }
 
-  /* ================= UPDATE ================= */
+  /* ================= UPDATE LOOP ================= */
 
   update() {
     if (!this.running) return;
 
     const next = this.snake.getNextHead();
 
-    // 🚧 Vägg eller svans = GAME OVER
+    // 🚧 Kollision – gäller ALLA lägen
     if (this.isWallCollision(next) || this.isBodyCollision(next)) {
-      console.warn("[Game] crash");
-      this.running = false;
-      this.win = false;
-      this.reason = "crash";
+      this.endGame("crash", false);
       return;
     }
 
-    // ✅ Säkert att flytta
+    // ✅ Flytta säkert
     this.snake.move();
 
-    if (this.mode === "classic") this.checkFood();
-    if (this.mode === "reverse") this.checkHouse();
+    // 🔀 Lägesspecifik logik
+    if (this.mode === MODES.CLASSIC) this.updateClassic();
+    if (this.mode === MODES.REVERSE) this.updateReverse();
   }
 
-  /* ================= COLLISIONS ================= */
+  /* ================= GEMENSAMMA REGLER ================= */
 
   isWallCollision(p) {
     return (
@@ -87,9 +94,21 @@ export class Game {
     );
   }
 
-  /* ================= CLASSIC ================= */
+  endGame(reason, win) {
+    this.running = false;
+    this.win = win;
+    this.reason = reason;
+  }
 
-  checkFood() {
+  /* ======================================================
+     3. CLASSIC MODE (ENDAST CLASSIC)
+     ====================================================== */
+
+  initClassic() {
+    this.food = spawnFreePosition(this, false);
+  }
+
+  updateClassic() {
     const head = this.snake.body[0];
     if (!this.food) return;
 
@@ -102,11 +121,9 @@ export class Game {
         `[Classic] +${BASE_SCORE * this.level} score (packages=${this.packages})`
       );
 
-      // 🎉 CLASSIC WIN
+      // 🎉 Vinst
       if (this.packages >= CLASSIC_MAX_PACKAGES) {
-        this.running = false;
-        this.win = true;
-        this.reason = "classic-complete";
+        this.endGame("classic-complete", true);
         return;
       }
 
@@ -114,11 +131,24 @@ export class Game {
     }
   }
 
-  /* ================= REVERSE ================= */
+  /* ======================================================
+     4. REVERSE MODE (ENDAST REVERSE)
+     ====================================================== */
 
-  checkHouse() {
+  initReverse() {
+    this.snake.buildReverseTrain(REVERSE_START_PACKAGES);
+    this.packages = REVERSE_START_PACKAGES;
+
+    // första huset: random ledig ruta
+    // (spawnas även i update om null)
+    // this.house = spawnFreePosition(this, false);
+  }
+
+  updateReverse() {
     const head = this.snake.body[0];
+
     if (!this.house) {
+      // första / nästa huset
       this.house = spawnFreePosition(this, true);
       return;
     }
@@ -132,26 +162,27 @@ export class Game {
         `[Reverse] house reached → packages=${this.packages}, +${BASE_SCORE * this.level}`
       );
 
-
-      // 🎉 REVERSE WIN
+      // 🎉 Vinst
       if (this.packages <= 0) {
-        this.running = false;
-        this.win = true;
-        this.reason = "reverse-complete";
+        this.endGame("reverse-complete", true);
         return;
       }
 
+      // nära i början, friare mot slutet
       const near = this.packages > 10;
       this.house = spawnFreePosition(this, near);
     }
   }
 
-  /* ================= TIME ================= */
+  /* ======================================================
+     5. TID / HUD (GEMENSAMT)
+     ====================================================== */
 
   getElapsedTime() {
     const s = Math.floor((Date.now() - this.startTime) / 1000);
-    return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(
-      s % 60
-    ).padStart(2, "0")}`;
+    const min = Math.floor(s / 60);
+    const sec = s % 60;
+
+    return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   }
 }
