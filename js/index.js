@@ -1,15 +1,14 @@
 import { Game } from "./core/game.js";
 import { createGrid, renderGame } from "./ui/renderer.js";
-import { updateHUD, showGameOver, hideGameOver } from "./ui/hud.js";
+import { updateHUD, showGameOver, hideGameOver, showWin } from "./ui/hud.js";
 import { initTouchControls } from "./input/controls.js";
 
 /* ---------- CONFIG ---------- */
 
 const board = document.getElementById("game-board");
-const BOARD_SIZE = 15;
+const BOARD_SIZE = 16; // ✅ var 15
 const cells = createGrid(board, BOARD_SIZE);
 
-// 🔑 ENDA källan till spelet
 const gameRef = { current: null };
 
 let loopId = null;
@@ -32,31 +31,20 @@ function gameLoop() {
   const game = gameRef.current;
   if (!game) return;
 
-  // 🛑 SPELET HAR STANNAT
   if (!game.running) {
-    console.warn("[Index] GAME STOPPED", {
-      win: game.win,
-      reason: game.reason,
-    });
+    console.warn("[Index] GAME STOPPED", { win: game.win, reason: game.reason });
 
-    if (game.win) {
-      showWin(game);        // 🎉 VINST
-    } else {
-      showGameOver(game);   // 💀 GAME OVER
-    }
+    if (game.win) showWin(game);
+    else showGameOver(game);
 
     return;
   }
 
-  // ▶️ SPELET PÅGÅR
   game.update();
   renderGame(cells, game, BOARD_SIZE);
   updateHUD(game);
 
-  loopId = setTimeout(
-    gameLoop,
-    LEVEL_SPEED[currentLevel]
-  );
+  loopId = setTimeout(gameLoop, LEVEL_SPEED[currentLevel]);
 }
 
 /* ---------- START / MODE ---------- */
@@ -70,7 +58,6 @@ function startGame(mode = currentMode) {
   if (loopId) clearTimeout(loopId);
 
   gameRef.current = new Game(BOARD_SIZE, mode, currentLevel);
-
   gameLoop();
 }
 
@@ -80,9 +67,7 @@ function changeLevel(level) {
   currentLevel = level;
   console.log("[Index] changeLevel:", level);
 
-  if (gameRef.current) {
-    gameRef.current.level = level;
-  }
+  if (gameRef.current) gameRef.current.level = level;
 
   if (loopId) clearTimeout(loopId);
   gameLoop();
@@ -92,16 +77,14 @@ function changeLevel(level) {
 
 initTouchControls(direction => {
   const game = gameRef.current;
-if (!game.running) {
-  if (game.win) {
-    showWin(game);
-  } else {
-    showGameOver(game);
-  }
-  return;
-}
+  if (!game) return;
 
-  console.log("[Touch] direction:", direction);
+  if (!game.running) {
+    if (game.win) showWin(game);
+    else showGameOver(game);
+    return;
+  }
+
   game.snake.setDirection(direction);
 });
 

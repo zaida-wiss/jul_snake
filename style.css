@@ -76,7 +76,8 @@ h1 {
   width: 100%;
   background-color: #ffffff;
   display: grid;
-  grid-template-columns: repeat(15, 1fr); /* Automatiskt fördelad bredd */
+  grid-template-columns: repeat(16, 1fr); /* Automatiskt fördelad bredd */
+  grid-template-rows: repeat(16, 1fr); /* Automatiskt fördelad höjd */
 }
 
 /* ===============================
@@ -250,7 +251,7 @@ GAME OVER OVERLAY
   }
 
   #game-board {
-    grid-template-columns: repeat(15, 24px);
+    grid-template-columns: repeat(16, 24px);
   }
 
   .cell {

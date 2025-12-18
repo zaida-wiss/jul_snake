@@ -1,22 +1,20 @@
+import { PATH } from "../core/path.js";
+
 export class Snake {
-
-  /* ======================================================
-     1. START / GRUNDLÄGE (GÄLLER ALLA LÄGEN)
-     ====================================================== */
-
   constructor(startX, startY) {
+    // Grid-baserad start (classic & reverse efter start)
     this.body = [
-      { x: startX, y: startY },       // 🦌 Ren (huvud)
-      { x: startX - 1, y: startY },   // 🎅 Tomte (första segment)
+      { x: startX, y: startY },       // 🦌
+      { x: startX - 1, y: startY },   // 🎅 (till höger-start)
     ];
 
     this.direction = "RIGHT";
     this.nextDirection = "RIGHT";
   }
 
-  /* ======================================================
-     2. GEMENSAM RÖRELSE & STYRNING
-     ====================================================== */
+  /* =====================
+     INPUT / STYRNING
+     ===================== */
 
   setDirection(dir) {
     const opposites = {
@@ -31,14 +29,17 @@ export class Snake {
     }
   }
 
+  /* =====================
+     GRID-RÖRELSE (styrd)
+     ===================== */
+
   getNextHead() {
     const head = this.body[0];
-
     const moves = {
-      UP:    { x: 0,  y: -1 },
-      DOWN:  { x: 0,  y: 1 },
-      LEFT:  { x: -1, y: 0 },
-      RIGHT: { x: 1,  y: 0 },
+      UP: { x: 0, y: -1 },
+      DOWN: { x: 0, y: 1 },
+      LEFT: { x: -1, y: 0 },
+      RIGHT: { x: 1, y: 0 },
     };
 
     return {
@@ -53,51 +54,36 @@ export class Snake {
     this.body.pop();
   }
 
-  /* ======================================================
-     3. CLASSIC MODE (TILLVÄXT)
-     ====================================================== */
+  /* =====================
+     CLASSIC
+     ===================== */
 
   grow() {
     this.body.push({ ...this.body[this.body.length - 1] });
   }
 
-  /* ======================================================
-     4. REVERSE MODE (BAKÅT-TÅG)
-     ====================================================== */
+  /* =====================
+     REVERSE
+     ===================== */
 
   removeLastPackage() {
-    if (this.body.length > 2) {
-      this.body.pop();
-    }
+    if (this.body.length > 2) this.body.pop();
   }
 
-  buildReverseTrain(count) {
-    const head = this.body[0];
+  // Exakt start-setup: kroppen ligger redan slingrad enligt PATH (pilarna)
+  // Renhuvud = PATH[0], Tomte = PATH[1], paket = PATH[2...]
+  buildReverseStartFromPath(packageCount) {
+    const totalLength = 2 + packageCount;
 
-    // ⚠️ OBS:
-    // Denna logik bygger rakt bakåt i X-led.
-    // Om du kör bana/path måste detta ersättas
-    // med path-baserad uppbyggnad.
-    this.body = [
-      { x: head.x, y: head.y },
-      { x: head.x - 1, y: head.y },
-    ];
+    this.body = PATH.slice(0, totalLength).map(p => ({ ...p }));
 
-    for (let i = 0; i < count; i++) {
-      this.body.push({
-        x: head.x - 2 - i,
-        y: head.y,
-      });
-    }
+    // Sätt riktning så att input-opposites funkar rimligt
+    // (renhuvudet är alltid överst i din setup)
+    this.direction = "RIGHT";
+    this.nextDirection = "RIGHT";
   }
-
-  /* ======================================================
-     5. HJÄLPFUNKTIONER (GEMENSAMT)
-     ====================================================== */
 
   occupies(pos) {
-    return this.body.some(
-      seg => seg.x === pos.x && seg.y === pos.y
-    );
+    return this.body.some(s => s.x === pos.x && s.y === pos.y);
   }
 }

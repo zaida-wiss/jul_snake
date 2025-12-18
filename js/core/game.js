@@ -1,26 +1,12 @@
-// core/game.js
 import { Snake } from "../entities/snake.js";
+import { PATH } from "./path.js";
 import { spawnFreePosition } from "../utils/spawn.js";
-
-/* ======================================================
-   1. SPELLÄGEN & KONSTANTER
-   ====================================================== */
-
-const MODES = {
-  CLASSIC: "classic",
-  REVERSE: "reverse",
-};
 
 const BASE_SCORE = 5;
 const CLASSIC_MAX_PACKAGES = 223;
-const REVERSE_START_PACKAGES = 102;
-
-/* ======================================================
-   2. GEMENSAM SPELMOTOR (GÄLLER ALLA LÄGEN)
-   ====================================================== */
 
 export class Game {
-  constructor(size, mode = MODES.CLASSIC, level = 1) {
+  constructor(size, mode = "classic", level = 1) {
     this.size = size;
     this.mode = mode;
     this.level = level;
@@ -29,69 +15,54 @@ export class Game {
     this.win = false;
     this.reason = null;
 
-    // 🦌 Startposition enligt din bana
-    this.snake = new Snake(2, 0);
-
     this.score = 0;
     this.packages = 0;
     this.startTime = Date.now();
 
-    // mode-specifika objekt
-    this.food = null;   // classic
-    this.house = null;  // reverse
+    this.food = null;
+    this.house = null;
 
-    // 🔀 Initiera valt läge
-    if (this.mode === MODES.CLASSIC) this.initClassic();
-    if (this.mode === MODES.REVERSE) this.initReverse();
-
-    console.log("[Game] started", {
-      mode: this.mode,
-      level: this.level,
-      packages: this.packages,
-    });
+    if (this.mode === "reverse") {
+      this.initReverseStart();
+    } else {
+      this.initClassic();
+    }
   }
 
-  /* ================= UPDATE LOOP ================= */
+  /* =====================
+     UPDATE LOOP
+     ===================== */
 
   update() {
     if (!this.running) return;
 
     const next = this.snake.getNextHead();
 
-    // 🚧 Kollision – gäller ALLA lägen
     if (this.isWallCollision(next) || this.isBodyCollision(next)) {
       this.endGame("crash", false);
       return;
     }
 
-    // ✅ Flytta säkert
     this.snake.move();
 
-    // 🔀 Lägesspecifik logik
-    if (this.mode === MODES.CLASSIC) this.updateClassic();
-    if (this.mode === MODES.REVERSE) this.updateReverse();
+    if (this.mode === "classic") this.updateClassic();
+    if (this.mode === "reverse") this.updateReverse();
   }
 
-  /* ================= GEMENSAMMA REGLER ================= */
+  /* =====================
+     GEMENSAMT
+     ===================== */
 
   isWallCollision(p) {
-    return (
-      p.x < 0 ||
-      p.y < 0 ||
-      p.x >= this.size ||
-      p.y >= this.size
-    );
+    return p.x < 0 || p.y < 0 || p.x >= this.size || p.y >= this.size;
   }
 
   isBodyCollision(p) {
+    // tillåt att “gå in i tail” samma tick (klassisk snake-regel)
     const bodyWithoutTail =
-      this.snake.body.length > 1
-        ? this.snake.body.slice(0, -1)
-        : this.snake.body;
+      this.snake.body.length > 1 ? this.snake.body.slice(0, -1) : this.snake.body;
 
-    return bodyWithoutTail.some(
-      seg => seg.x === p.x && seg.y === p.y
-    );
+    return bodyWithoutTail.some(seg => seg.x === p.x && seg.y === p.y);
   }
 
   endGame(reason, win) {
@@ -100,11 +71,15 @@ export class Game {
     this.reason = reason;
   }
 
-  /* ======================================================
-     3. CLASSIC MODE (ENDAST CLASSIC)
-     ====================================================== */
+  /* =====================
+     CLASSIC
+     ===================== */
 
   initClassic() {
+    // start i mitten-ish
+    const c = Math.floor(this.size / 2);
+    this.snake = new Snake(c, c);
+
     this.food = spawnFreePosition(this, false);
   }
 
@@ -117,11 +92,6 @@ export class Game {
       this.packages++;
       this.score += BASE_SCORE * this.level;
 
-      console.log(
-        `[Classic] +${BASE_SCORE * this.level} score (packages=${this.packages})`
-      );
-
-      // 🎉 Vinst
       if (this.packages >= CLASSIC_MAX_PACKAGES) {
         this.endGame("classic-complete", true);
         return;
@@ -131,58 +101,60 @@ export class Game {
     }
   }
 
-  /* ======================================================
-     4. REVERSE MODE (ENDAST REVERSE)
-     ====================================================== */
+  /* =====================
+     REVERSE
+     ===================== */
 
-  initReverse() {
-    this.snake.buildReverseTrain(REVERSE_START_PACKAGES);
-    this.packages = REVERSE_START_PACKAGES;
+  initReverseStart() {
+    // Säkerställ att PATH matchar size*size
+    // (16x16 => 256)
+    const totalCells = this.size * this.size;
+    if (PATH.length !== totalCells) {
+      this.endGame("path-size-mismatch", false);
+      return;
+    }
 
-    // första huset: random ledig ruta
-    // (spawnas även i update om null)
-    // this.house = spawnFreePosition(this, false);
+    // Exakt start-setup:
+    // fyll ALLA celler utom 1 (den blir huset)
+    const startPackages = totalCells - 3; // 1 ren + 1 tomte + 1 hus
+
+    // snake startas “grid-mässigt”, men vi byter body till PATH-setup direkt
+    this.snake = new Snake(0, 0);
+    this.snake.buildReverseStartFromPath(startPackages);
+
+    this.packages = startPackages;
+
+    // enda lediga cellen = PATH[body.length]
+    this.house = PATH[this.snake.body.length];
   }
 
   updateReverse() {
     const head = this.snake.body[0];
-
-    if (!this.house) {
-      // första / nästa huset
-      this.house = spawnFreePosition(this, true);
-      return;
-    }
+    if (!this.house) return;
 
     if (head.x === this.house.x && head.y === this.house.y) {
       this.snake.removeLastPackage();
       this.packages--;
       this.score += BASE_SCORE * this.level;
 
-      console.log(
-        `[Reverse] house reached → packages=${this.packages}, +${BASE_SCORE * this.level}`
-      );
-
-      // 🎉 Vinst
       if (this.packages <= 0) {
         this.endGame("reverse-complete", true);
         return;
       }
 
-      // nära i början, friare mot slutet
-      const near = this.packages > 10;
-      this.house = spawnFreePosition(this, near);
+      // Efter start: spawn random ledig ruta
+      this.house = spawnFreePosition(this, false);
     }
   }
 
-  /* ======================================================
-     5. TID / HUD (GEMENSAMT)
-     ====================================================== */
+  /* =====================
+     HUD
+     ===================== */
 
   getElapsedTime() {
     const s = Math.floor((Date.now() - this.startTime) / 1000);
     const min = Math.floor(s / 60);
     const sec = s % 60;
-
     return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   }
 }
