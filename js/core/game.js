@@ -19,6 +19,7 @@ export class Game {
     this.score = 0;
     this.packages = 0;
     this.startTime = Date.now();
+    this.startDelayUntil = Date.now() + 2000; // 2 sek startpaus
 
     this.food = null;
     this.house = null;
@@ -39,6 +40,12 @@ export class Game {
      ===================== */
 
   update() {
+    
+    // ⏳ Startfördröjning (gäller alla lägen)
+if (Date.now() < this.startDelayUntil) {
+  return;
+}
+
     if (!this.running) return;
 
     if (this.mode === "classic") {
