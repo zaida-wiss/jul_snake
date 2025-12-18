@@ -230,6 +230,7 @@ GAME OVER OVERLAY
   background-position: center top;
   background-repeat: no-repeat;
   background-size: contain;
+  z-index: 60;
 }
 
 .overlay {
