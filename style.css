@@ -147,16 +147,21 @@ UI PANEL
 ================================ */
 
 .ui-panel {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  display: grid;
   gap: 0.5rem;
 }
 
 .hud {
-  font-size: 0.8rem;
+  display:flex;
+  flex-direction: row;
+  gap: 15px;
+  background-color: black;
+  align-items: center;
+  font-size: 2rem;
 }
+#mode-buttons {
 
+}
 .level-select {
   margin-bottom: 0.25rem;
 }
