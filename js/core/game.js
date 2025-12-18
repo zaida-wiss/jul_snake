@@ -29,7 +29,7 @@ export class Game {
       this.snake.buildReverseTrain(START_PACKAGES);
       this.packages = START_PACKAGES;
 
-      this.house = spawnFreePosition(this, true);
+      this.house = spawnFreePosition(this, false);  👈 nära huvudet: av/på
     } else {
       // classic
       this.food = spawnFreePosition(this, false);
@@ -131,6 +131,7 @@ export class Game {
       console.log(
         `[Reverse] house reached → packages=${this.packages}, +${BASE_SCORE * this.level}`
       );
+
 
       // 🎉 REVERSE WIN
       if (this.packages <= 0) {
