@@ -40,7 +40,7 @@ export class Game {
      ===================== */
 
   update() {
-    
+
     // ⏳ Startfördröjning (gäller alla lägen)
 if (Date.now() < this.startDelayUntil) {
   return;
@@ -48,23 +48,31 @@ if (Date.now() < this.startDelayUntil) {
 
     if (!this.running) return;
 
-    if (this.mode === "classic") {
-      const next = this.snake.getNextHead();
+   if (this.mode === "classic") {
+  const next = this.snake.getNextHead();
 
-      if (
-        next.x < 0 ||
-        next.y < 0 ||
-        next.x >= this.size ||
-        next.y >= this.size
-      ) {
-        this.endGame("wall-crash", false);
-        return;
-      }
+  // 🧱 Väggkollision
+  if (
+    next.x < 0 ||
+    next.y < 0 ||
+    next.x >= this.size ||
+    next.y >= this.size
+  ) {
+    this.endGame("wall-crash", false);
+    return;
+  }
 
-      this.snake.move();
-      this.updateClassic();
-      return;
-    }
+  // 📦 KROPPKOLLISION (KRITISK)
+  if (this.snake.occupies(next)) {
+    this.endGame("self-crash", false);
+    return;
+  }
+
+  // ▶️ Flytta
+  this.snake.move();
+  this.updateClassic();
+  return;
+}
 
     if (this.mode === "reverse") {
       this.updateReverse();
