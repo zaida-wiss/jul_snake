@@ -85,17 +85,8 @@ initTouchControls(direction => {
   const game = gameRef.current;
   if (!game || !game.running) return;
 
-  // Reverse: touch = styrning
-  if (game.mode === "reverse") {
-    game.reverseActive = true;
-    game.reverseDirection = direction;
-    return;
-  }
-
-  // Classic: touch = riktning
-  if (game.mode === "classic") {
-    game.snake.setDirection(direction);
-  }
+  // 🔑 SAMMA STYRNING I ALLA LÄGEN
+  game.snake.setDirection(direction);
 });
 
 

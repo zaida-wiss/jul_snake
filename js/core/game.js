@@ -60,7 +60,6 @@ export class Game {
     }
 
     if (this.mode === "reverse") {
-      if (!this.reverseActive) return;
       this.updateReverse();
     }
   }
