@@ -146,12 +146,24 @@ updateReverse() {
     y: head.y + move.y,
   };
 
-  // ❌ Tomrutan ligger inte i den riktningen → stanna
-  if (target.x !== this.emptyCell.x || target.y !== this.emptyCell.y) {
+  // 🧱 Väggkrasch
+  if (
+    target.x < 0 ||
+    target.y < 0 ||
+    target.x >= this.size ||
+    target.y >= this.size
+  ) {
+    this.endGame("wall-crash", false);
     return;
   }
 
-  // ✔️ Flytta in i tomrutan
+  // ❌ Försöker gå åt håll där tomrutan inte finns → kroppen står i vägen
+  if (target.x !== this.emptyCell.x || target.y !== this.emptyCell.y) {
+    this.endGame("self-crash", false);
+    return;
+  }
+
+  // ✔️ Giltigt drag: flytta in i tomrutan
   const tail = this.snake.body[this.snake.body.length - 1];
 
   this.snake.body.unshift({ ...this.emptyCell });
@@ -159,6 +171,7 @@ updateReverse() {
 
   this.emptyCell = { ...tail };
 }
+
 
 
 
