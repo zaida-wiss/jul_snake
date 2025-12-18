@@ -6,9 +6,10 @@ import { initTouchControls } from "./input/controls.js";
 /* ---------- CONFIG ---------- */
 
 const board = document.getElementById("game-board");
-const BOARD_SIZE = 16; // ✅ var 15
+const BOARD_SIZE = 16; // ✅ måste vara 16 (inte 15)
 const cells = createGrid(board, BOARD_SIZE);
 
+// 🔑 ENDA källan till spelet
 const gameRef = { current: null };
 
 let loopId = null;
@@ -31,8 +32,12 @@ function gameLoop() {
   const game = gameRef.current;
   if (!game) return;
 
+  // 🛑 SPELET HAR STANNAT
   if (!game.running) {
-    console.warn("[Index] GAME STOPPED", { win: game.win, reason: game.reason });
+    console.warn("[Index] GAME STOPPED", {
+      win: game.win,
+      reason: game.reason,
+    });
 
     if (game.win) showWin(game);
     else showGameOver(game);
@@ -40,6 +45,7 @@ function gameLoop() {
     return;
   }
 
+  // ▶️ SPELET PÅGÅR
   game.update();
   renderGame(cells, game, BOARD_SIZE);
   updateHUD(game);

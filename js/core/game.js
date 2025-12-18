@@ -1,3 +1,4 @@
+// core/game.js
 import { Snake } from "../entities/snake.js";
 import { PATH } from "./path.js";
 import { spawnFreePosition } from "../utils/spawn.js";
@@ -38,8 +39,21 @@ export class Game {
 
     const next = this.snake.getNextHead();
 
-    if (this.isWallCollision(next) || this.isBodyCollision(next)) {
-      this.endGame("crash", false);
+    // väggkollision
+    if (
+      next.x < 0 ||
+      next.y < 0 ||
+      next.x >= this.size ||
+      next.y >= this.size
+    ) {
+      this.endGame("wall-crash", false);
+      return;
+    }
+
+    // kroppskollision (utan svansen)
+    const bodyWithoutTail = this.snake.body.slice(0, -1);
+    if (bodyWithoutTail.some(s => s.x === next.x && s.y === next.y)) {
+      this.endGame("self-crash", false);
       return;
     }
 
@@ -50,36 +64,12 @@ export class Game {
   }
 
   /* =====================
-     GEMENSAMT
-     ===================== */
-
-  isWallCollision(p) {
-    return p.x < 0 || p.y < 0 || p.x >= this.size || p.y >= this.size;
-  }
-
-  isBodyCollision(p) {
-    // tillåt att “gå in i tail” samma tick (klassisk snake-regel)
-    const bodyWithoutTail =
-      this.snake.body.length > 1 ? this.snake.body.slice(0, -1) : this.snake.body;
-
-    return bodyWithoutTail.some(seg => seg.x === p.x && seg.y === p.y);
-  }
-
-  endGame(reason, win) {
-    this.running = false;
-    this.win = win;
-    this.reason = reason;
-  }
-
-  /* =====================
      CLASSIC
      ===================== */
 
   initClassic() {
-    // start i mitten-ish
     const c = Math.floor(this.size / 2);
     this.snake = new Snake(c, c);
-
     this.food = spawnFreePosition(this, false);
   }
 
@@ -102,54 +92,45 @@ export class Game {
   }
 
   /* =====================
-     REVERSE
+     REVERSE – START
      ===================== */
 
   initReverseStart() {
-    // Säkerställ att PATH matchar size*size
-    // (16x16 => 256)
-    const totalCells = this.size * this.size;
-    if (PATH.length !== totalCells) {
-      this.endGame("path-size-mismatch", false);
-      return;
-    }
-
-    // Exakt start-setup:
-    // fyll ALLA celler utom 1 (den blir huset)
-    const startPackages = totalCells - 3; // 1 ren + 1 tomte + 1 hus
-
-    // snake startas “grid-mässigt”, men vi byter body till PATH-setup direkt
     this.snake = new Snake(0, 0);
-    this.snake.buildReverseStartFromPath(startPackages);
 
-    this.packages = startPackages;
+    // 🔒 Start enligt kartan:
+    // PATH[1] = ruta 1 → 🦌 ren
+    // PATH[2] = ruta 2 → 🎅 tomte
+    this.snake.body = [
+      { ...PATH[1] },
+      { ...PATH[2] },
+    ];
 
-    // enda lediga cellen = PATH[body.length]
-    this.house = PATH[this.snake.body.length];
-  }
+    this.snake.direction = "RIGHT";
+    this.snake.nextDirection = "RIGHT";
 
-  updateReverse() {
-    const head = this.snake.body[0];
-    if (!this.house) return;
-
-    if (head.x === this.house.x && head.y === this.house.y) {
-      this.snake.removeLastPackage();
-      this.packages--;
-      this.score += BASE_SCORE * this.level;
-
-      if (this.packages <= 0) {
-        this.endGame("reverse-complete", true);
-        return;
-      }
-
-      // Efter start: spawn random ledig ruta
-      this.house = spawnFreePosition(this, false);
-    }
+    // Enda tomma rutan (157)
+    this.house = PATH[156];
   }
 
   /* =====================
-     HUD
+     REVERSE – LOOP (STUB)
      ===================== */
+
+  updateReverse() {
+    // 🔒 Medvetet tom just nu.
+    // Reverse-logik byggs här senare.
+  }
+
+  /* =====================
+     SLUT
+     ===================== */
+
+  endGame(reason, win) {
+    this.running = false;
+    this.win = win;
+    this.reason = reason;
+  }
 
   getElapsedTime() {
     const s = Math.floor((Date.now() - this.startTime) / 1000);

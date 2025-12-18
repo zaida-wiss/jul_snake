@@ -1,20 +1,15 @@
-import { PATH } from "../core/path.js";
+// entities/snake.js
 
 export class Snake {
   constructor(startX, startY) {
-    // Grid-baserad start (classic & reverse efter start)
     this.body = [
-      { x: startX, y: startY },       // 🦌
-      { x: startX - 1, y: startY },   // 🎅 (till höger-start)
+      { x: startX, y: startY },       // huvud (ren)
+      { x: startX - 1, y: startY },   // svans (tomte)
     ];
 
     this.direction = "RIGHT";
     this.nextDirection = "RIGHT";
   }
-
-  /* =====================
-     INPUT / STYRNING
-     ===================== */
 
   setDirection(dir) {
     const opposites = {
@@ -29,16 +24,12 @@ export class Snake {
     }
   }
 
-  /* =====================
-     GRID-RÖRELSE (styrd)
-     ===================== */
-
   getNextHead() {
     const head = this.body[0];
     const moves = {
-      UP: { x: 0, y: -1 },
-      DOWN: { x: 0, y: 1 },
-      LEFT: { x: -1, y: 0 },
+      UP:    { x: 0, y: -1 },
+      DOWN:  { x: 0, y: 1 },
+      LEFT:  { x: -1, y: 0 },
       RIGHT: { x: 1, y: 0 },
     };
 
@@ -54,36 +45,24 @@ export class Snake {
     this.body.pop();
   }
 
-  /* =====================
-     CLASSIC
-     ===================== */
-
   grow() {
-    this.body.push({ ...this.body[this.body.length - 1] });
+    const tail = this.body[this.body.length - 1];
+    this.body.push({ ...tail });
   }
-
-  /* =====================
-     REVERSE
-     ===================== */
 
   removeLastPackage() {
-    if (this.body.length > 2) this.body.pop();
+    if (this.body.length > 2) {
+      this.body.pop();
+    }
   }
 
-  // Exakt start-setup: kroppen ligger redan slingrad enligt PATH (pilarna)
-  // Renhuvud = PATH[0], Tomte = PATH[1], paket = PATH[2...]
-  buildReverseStartFromPath(packageCount) {
-    const totalLength = 2 + packageCount;
-
-    this.body = PATH.slice(0, totalLength).map(p => ({ ...p }));
-
-    // Sätt riktning så att input-opposites funkar rimligt
-    // (renhuvudet är alltid överst i din setup)
-    this.direction = "RIGHT";
-    this.nextDirection = "RIGHT";
-  }
+  /* =====================
+     🔒 KRITISK FÖR CLASSIC
+     ===================== */
 
   occupies(pos) {
-    return this.body.some(s => s.x === pos.x && s.y === pos.y);
+    return this.body.some(
+      seg => seg.x === pos.x && seg.y === pos.y
+    );
   }
 }
