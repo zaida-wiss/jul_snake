@@ -10,32 +10,35 @@
 </head>
 
 <body>
-  <div class="page" id="touch-zone">
+  <section class="page" id="touch-zone">
     <main class="game-area">
       <div id="game-board"></div>
     </main>
-
-    <section class="ui-panel">
+  <section id="ui-panel" >
+    <section class="hud-container">
       <div class="hud">
         ⭐ <span id="score">0</span>
         🎁 <span id="packages">0</span>
         🏠 <span id="packages">0</span>
         ⏰ <span id="time">0:00</span>
       </div>
-      <section id="mode-buttons">
-          <button id="start-btn">🎁</button>
-          <button id="reverse-btn">🏠</button>
+    </section>
+      <section id="selectMode">
+        <section id="mode-buttons">
+            <button id="start-btn">🎁</button>
+            <button id="reverse-btn">🏠</button>
+        </section>
+        <section class="level-select">
+          <span>Level:</span><br>
+          <button data-level="1" class="active">1</button>
+          <button data-level="2">2</button>
+          <button data-level="3">3</button>
+          <button data-level="4">4</button>
+          <button data-level="5">5</button>
+        </section>
       </section>
-    <div class="level-select">
-      <span>Level:</span><br>
-      <button data-level="1" class="active">1</button>
-      <button data-level="2">2</button>
-      <button data-level="3">3</button>
-      <button data-level="4">4</button>
-      <button data-level="5">5</button>
-    </div>
-    <div class="controls">
-    </div>
+    </section>
+  </section>
 
 </section>
 
