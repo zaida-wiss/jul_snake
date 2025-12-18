@@ -3,8 +3,16 @@ import { Snake } from "../entities/snake.js";
 import { PATH } from "./path.js";
 import { spawnFreePosition } from "../utils/spawn.js";
 
+/* =====================
+   KONSTANTER
+   ===================== */
+
 const BASE_SCORE = 5;
 const CLASSIC_MAX_PACKAGES = 223;
+
+/* =====================
+   GAME
+   ===================== */
 
 export class Game {
   constructor(size, mode = "classic", level = 1) {
@@ -23,6 +31,9 @@ export class Game {
     this.food = null;
     this.house = null;
 
+    // används endast i reverse
+    this.pathIndex = null;
+
     if (this.mode === "reverse") {
       this.initReverseStart();
     } else {
@@ -37,39 +48,25 @@ export class Game {
   update() {
     if (!this.running) return;
 
-    const next = this.snake.getNextHead();
-
-    // väggkollision
-    if (
-      next.x < 0 ||
-      next.y < 0 ||
-      next.x >= this.size ||
-      next.y >= this.size
-    ) {
-      this.endGame("wall-crash", false);
+    if (this.mode === "classic") {
+      this.snake.move();
+      this.updateClassic();
       return;
     }
 
-    // kroppskollision (utan svansen)
-    const bodyWithoutTail = this.snake.body.slice(0, -1);
-    if (bodyWithoutTail.some(s => s.x === next.x && s.y === next.y)) {
-      this.endGame("self-crash", false);
-      return;
-    }
-
-    this.snake.move();
-
-    if (this.mode === "classic") this.updateClassic();
-    if (this.mode === "reverse") this.updateReverse();
+if (this.mode === "reverse") {
+  // 🔒 Reverse får INTE röra sig när hela PATH är fylld
+  // Rörelse aktiveras först när ett paket ska bort
+  return;
+}
   }
 
   /* =====================
-     CLASSIC
+     CLASSIC MODE (ORÖRD)
      ===================== */
 
   initClassic() {
-    const c = Math.floor(this.size / 2);
-    this.snake = new Snake(c, c);
+    this.snake = new Snake(0, 2);
     this.food = spawnFreePosition(this, false);
   }
 
@@ -92,38 +89,73 @@ export class Game {
   }
 
   /* =====================
-     REVERSE – START
+     REVERSE MODE – START
      ===================== */
 
   initReverseStart() {
     this.snake = new Snake(0, 0);
 
-    // 🔒 Start enligt kartan:
-    // PATH[1] = ruta 1 → 🦌 ren
-    // PATH[2] = ruta 2 → 🎅 tomte
-    this.snake.body = [
-      { ...PATH[1] },
-      { ...PATH[2] },
-    ];
+    // 🧭 PATH-definition:
+    // PATH[0] = 1 (ren)
+    // PATH[1] = 2 (tomte)
+    // PATH[2..] = paket
 
-    this.snake.direction = "RIGHT";
-    this.snake.nextDirection = "RIGHT";
+    this.snake.body = PATH.map(cell => ({ ...cell }));
 
-    // Enda tomma rutan (157)
-    this.house = PATH[156];
+    this.packages = this.snake.body.length - 2;
+
+    // Startindex = sista paketet (högsta talet)
+    this.pathIndex = PATH.length - 1;
+
+    // Inget hus ännu
+    this.house = null;
   }
 
   /* =====================
-     REVERSE – LOOP (STUB)
+     REVERSE MODE – UPDATE
      ===================== */
 
   updateReverse() {
-    // 🔒 Medvetet tom just nu.
-    // Reverse-logik byggs här senare.
+    const nextIndex = this.pathIndex - 1;
+
+    // Slut på path
+    if (nextIndex < 0) {
+      this.endGame("reverse-complete", true);
+      return;
+    }
+
+    const nextCell = PATH[nextIndex];
+    if (!nextCell) {
+      this.endGame("no-more-path", false);
+      return;
+    }
+
+    // 🔥 KOLLISION MED EGEN KROPP
+    if (this.snake.occupies(nextCell)) {
+      this.endGame("self-crash", false);
+      return;
+    }
+
+    // 🔥 KOLLISION MED VÄGG (säkerhet)
+    if (
+      nextCell.x < 0 ||
+      nextCell.y < 0 ||
+      nextCell.x >= this.size ||
+      nextCell.y >= this.size
+    ) {
+      this.endGame("wall-crash", false);
+      return;
+    }
+
+    // Flytta huvudet längs PATH
+    this.snake.body.unshift({ ...nextCell });
+    this.snake.body.pop();
+
+    this.pathIndex = nextIndex;
   }
 
   /* =====================
-     SLUT
+     AVSLUT / HUD
      ===================== */
 
   endGame(reason, win) {
@@ -136,6 +168,7 @@ export class Game {
     const s = Math.floor((Date.now() - this.startTime) / 1000);
     const min = Math.floor(s / 60);
     const sec = s % 60;
+
     return `${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
   }
 }
