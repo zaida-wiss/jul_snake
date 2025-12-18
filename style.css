@@ -193,6 +193,7 @@ button {
   background: #1f3b52;
   color: #fff;
 }
+
 #selectMode {
 margin-top: -80px;;
 background-color: black;
@@ -218,6 +219,22 @@ font-size: 1.5rem;
   height: 40px;
   gap: 10px;
 }
+/* ===============================
+   ACTIVE MODE BUTTON
+================================ */
+
+#mode-buttons button.active {
+  background: #b4000098;              /* röd */
+  transform: scale(1.15);           /* lite större */
+  box-shadow:
+    0 0 10px rgba(255, 60, 60, 0.8),
+    0 0 20px rgba(255, 60, 60, 0.4);
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
 
 
 /* ===============================

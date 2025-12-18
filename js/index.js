@@ -54,6 +54,32 @@ function gameLoop() {
 }
 
 /* ---------- START / MODE ---------- */
+function updateModeButtons(mode) {
+  const buttons = document.querySelectorAll("#mode-buttons button");
+
+  buttons.forEach(btn => btn.classList.remove("active"));
+
+  if (mode === "classic") {
+    document.getElementById("start-btn")?.classList.add("active");
+  }
+
+  if (mode === "reverse") {
+    document.getElementById("reverse-btn")?.classList.add("active");
+  }
+}
+function updateLevelButtons(level) {
+  const buttons = document.querySelectorAll(".level-select button");
+
+  buttons.forEach(btn => btn.classList.remove("active"));
+
+  const activeBtn = document.querySelector(
+    `.level-select button[data-level="${level}"]`
+  );
+
+  if (activeBtn) {
+    activeBtn.classList.add("active");
+  }
+}
 
 function startGame(mode = currentMode) {
   console.log("[Index] startGame:", mode);
@@ -64,6 +90,11 @@ function startGame(mode = currentMode) {
   if (loopId) clearTimeout(loopId);
 
   gameRef.current = new Game(BOARD_SIZE, mode, currentLevel);
+
+  // 🔑 UI-synk
+  updateModeButtons(mode);
+  updateLevelButtons(currentLevel);
+
   gameLoop();
 }
 
@@ -73,7 +104,12 @@ function changeLevel(level) {
   currentLevel = level;
   console.log("[Index] changeLevel:", level);
 
-  if (gameRef.current) gameRef.current.level = level;
+  if (gameRef.current) {
+    gameRef.current.level = level;
+  }
+
+  // 🔑 uppdatera UI
+  updateLevelButtons(level);
 
   if (loopId) clearTimeout(loopId);
   gameLoop();
@@ -88,6 +124,13 @@ initTouchControls(direction => {
   // 🔑 SAMMA STYRNING I ALLA LÄGEN
   game.snake.setDirection(direction);
 });
+function setActiveModeButton(mode) {
+  document
+    .querySelectorAll("#mode-buttons button")
+    .forEach(btn => {
+      btn.classList.toggle("active", btn.dataset.mode === mode);
+    });
+}
 
 
 /* ---------- UI EVENTS ---------- */
@@ -103,3 +146,6 @@ document.getElementById("restart-btn").onclick = () => {
   console.log("[UI] restart");
   startGame(currentMode);
 };
+
+updateModeButtons(currentMode);
+updateLevelButtons(currentLevel);
