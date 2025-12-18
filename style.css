@@ -43,6 +43,10 @@ body {
   justify-items: center;
   overflow-x: hidden;      /* sista skyddsnätet */
 }
+#touch-zone {
+  touch-action: none;
+  overscroll-behavior: none;
+}
 
 /* ===============================
    HEADER
