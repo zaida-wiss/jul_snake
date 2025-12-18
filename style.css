@@ -68,8 +68,9 @@ h1 {
   padding: 0;
   justify-content: center;
   align-items: center;
+  z-index:54;
   width: 100%;
-  height: 360px;; /* Se till att spelområdet alltid är 100% brett */
+  height: 360px; /*Se till att spelområdet alltid är 100% högt */
   /* max-width: 360px; Håller spelplanen innanför .page */
 }
 
@@ -81,10 +82,11 @@ h1 {
   border: red 2px solid;
 
   width: 100%;
+  z-index: 55;
   background-color: #ffffff;
   display: grid;
-  grid-template-columns: repeat(16, 1fr); /* Automatiskt fördelad bredd */
-  grid-template-rows: repeat(16, 1fr); /* Automatiskt fördelad höjd */
+  grid-template-columns: repeat(16, auto); /* Automatiskt fördelad bredd */
+  grid-template-rows: repeat(16, auto); /* Automatiskt fördelad höjd */
 }
 
 /* ===============================
@@ -173,23 +175,7 @@ UI PANEL
   align-content: baseline;
   height:60px;
 }
-#selectMode {
-  margin-top: -80px;;
-background-color: black;
-height: 60px;
-width: 100%;
-display: flex;
-padding:10px;
-justify-content: center;
-align-items: center;
 
-}
-#mode-buttons {
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  height: 40px;
-}
 
 
 /* ===============================
@@ -208,10 +194,24 @@ button {
   color: #fff;
 }
 #selectMode {
+margin-top: -80px;;
+background-color: black;
+height: 60px;
+width: 100%;
+display: flex;
+padding:10px;
+justify-content: center;
+align-items: center;
+gap: 30px;
+padding: 32px;
+font-size: 1.5rem;
+
+}
+#mode-buttons {
   display: flex;
   justify-content: center;
-  font-size: 1.5rem;
-
+  height: 40px;
+  gap: 17px
 }
 .level-select {
   display:flex;
@@ -267,6 +267,25 @@ GAME OVER OVERLAY
 .game-over-active .ui-panel {
   display: none;
 }
+
+
+@media (min-width: 400px) {
+#selectMode {
+margin-top: -135px;;
+background-color: black;
+height: 60px;
+gap: 45px;
+padding: 40px;
+font-size: 1.5rem;
+
+}
+.level-select {
+  display:flex;
+  height: 40px;
+  gap: 12px;
+}
+}
+
 
 /* ===============================
    DESKTOP
